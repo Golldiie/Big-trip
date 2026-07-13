@@ -1,4 +1,4 @@
-export const destinations = [
+export const mockDestinations = [
   {
     'id': '9c39c4a1-c01a-46bc-a114-6692baedb062',
     'description': 'Hiroshima - a true asian pearl',

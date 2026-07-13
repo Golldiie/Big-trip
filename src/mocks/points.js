@@ -1,4 +1,4 @@
-export const points = [
+export const mockPoints = [
   {
     'id': '9662deb1-8fce-478b-b1ed-35e3a0c16047',
     'basePrice': 468,
