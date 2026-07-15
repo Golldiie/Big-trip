@@ -1,10 +1,11 @@
 import { createElement } from '../render.js';
-const SORT_TYPES = ['Day', 'Event', 'Time', 'Price', 'Offers'];
+import { SORT_TYPES } from '../const.js';
+import { capitalize } from '../utils/utils.js';
 
 function createSortingItemTemplate(type){
-  return `<div class="trip-sort__item  trip-sort__item--${type.toLowerCase()}">
-              <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${type.toLowerCase()}">
-              <label class="trip-sort__btn" for="sort-${type.toLowerCase()}">${type}</label>
+  return `<div class="trip-sort__item  trip-sort__item--${type}">
+              <input id="sort-${type}" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${type}">
+              <label class="trip-sort__btn" for="sort-${type}">${capitalize(type)}</label>
             </div>`;
 }
 

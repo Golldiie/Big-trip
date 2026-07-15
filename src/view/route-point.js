@@ -1,61 +1,5 @@
 import { createElement } from '../render';
-
-const POINTS = [
-  {
-    date: 'MAR 18',
-    dateTime: '2019-03-18',
-    type: 'taxi',
-    destination: 'Amsterdam',
-    startTime: '10:30',
-    endTime: '11:00',
-    duration: '30M',
-    price: '20',
-    isFavourite: true,
-    offers: [
-      {
-        title: 'Order Uber',
-        price: 20
-      }
-    ]
-  },
-  {
-    date: 'MAR 18',
-    dateTime: '2019-03-18',
-    type: 'flight',
-    destination: 'Flight Chamonix',
-    startTime: '12:25',
-    endTime: '13:35',
-    duration: '01H 10M',
-    price: '160',
-    isFavourite: false,
-    offers: [
-      {
-        title: 'Add luggage',
-        price: 50
-      },
-      {
-        title: 'Switch to comfort',
-        price: 80
-      }
-    ]
-  },
-  {
-    date: 'MAR 18',
-    dateTime: '2019-03-18',
-    type: 'drive',
-    destination: 'Drive Chamonix',
-    startTime: '14:30',
-    endTime: '16:05',
-    duration: '01H 35M',
-    price: '160',
-    isFavourite: true,
-    offers: [
-      {
-        title: 'Rent a car',
-        price: 200
-      }
-    ]
-  }];
+import { capitalize, humanizeDate, getClassDate, getEventDuration, humanizeTime, getFullIsoDate } from '../utils/utils';
 
 function createSelectedOfferTemplate(offer){
   return `<li class="event__offer">
@@ -72,21 +16,21 @@ function createSelectedOffersTemplate(offers) {
 function createRoutePointTemplate(point){
   return `<li class="trip-events__item">
     <div class="event">
-      <time class="event__date" datetime="${point.dateTime}">${point.date}</time>
+      <time class="event__date" datetime="${getClassDate(point.dateFrom)}">${humanizeDate(point.dateFrom)}</time>
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${point.type}.png" alt="Event type icon">
       </div>
-      <h3 class="event__title">Check-in Chamonix</h3>
+      <h3 class="event__title">${capitalize(point.type)} ${capitalize(point.destination.name)}</h3>
       <div class="event__schedule">
         <p class="event__time">
-          <time class="event__start-time" datetime="${point.dateTime}T${point.startTime}">${point.startTime}</time>
+          <time class="event__start-time" datetime="${getFullIsoDate(point.dateFrom)}">${humanizeTime(point.dateFrom)}</time>
             &mdash;
-          <time class="event__end-time" datetime="${point.dateTime}T${point.endTime}">${point.endTime}</time>
+          <time class="event__end-time" datetime="${getFullIsoDate(point.dateTo)}">${humanizeTime(point.dateTo)}</time>
         </p>
-        <p class="event__duration">${point.duration}</p>
+        <p class="event__duration">${getEventDuration(point.dateFrom, point.dateTo)}</p>
       </div>
       <p class="event__price">
-        &euro;&nbsp;<span class="event__price-value">${point.price}</span>
+        &euro;&nbsp;<span class="event__price-value">${point.basePrice}</span>
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">
@@ -128,4 +72,3 @@ export default class RoutePoint {
   }
 }
 
-export { POINTS };
