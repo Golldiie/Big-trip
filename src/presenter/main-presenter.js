@@ -15,13 +15,26 @@ export default class MainPresenter {
   init(){
     render(new Filter(), this.filtersContainer);
     render(new Sort(), this.eventsContainer);
-    const pointsList = document.createElement('ul');
-    pointsList.classList.add('trip-events__list');
+    const pointsListElement = document.createElement('ul');
+    pointsListElement.classList.add('trip-events__list');
 
-    this.eventsContainer.append(pointsList);
-    render(new FormCreation({offers: this.tripModel.getOfferByType('flight').offers, destinations: this.tripModel.getDestinations()}), pointsList, RenderPosition.AFTERBEGIN);
+    this.eventsContainer.append(pointsListElement);
+    render(new FormCreation({offers: this.tripModel.getOfferByType('flight').offers, destinations: this.tripModel.getDestinations()}), pointsListElement, RenderPosition.AFTERBEGIN);
 
     const points = this.tripModel.getPoints();
-    points.forEach((point) => render(new RoutePoint(point), pointsList));
+    points.forEach((point) => {
+      const destination = this.tripModel.getDestinationById(point.destination);
+
+      const offers = this.tripModel.getOfferById(point.type, point.offers);
+
+      render(
+        new RoutePoint({
+          ...point,
+          destination,
+          offers
+        }),
+        pointsListElement
+      );
+    });
   }
 }
