@@ -46,10 +46,10 @@ export function getEventDuration(dateFrom, dateTo) {
 
   const pad = (num) => String(num).padStart(2, '0');
 
-  if (days > 0) {
+  if (days > 1) {
     return `${pad(days)}D ${pad(hours)}H ${pad(minutes)}M`;
   }
-  if (hours > 0) {
+  if (hours > 1) {
     return `${pad(hours)}H ${pad(minutes)}M`;
   }
   return `${pad(minutes)}M`;
