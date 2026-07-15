@@ -21,7 +21,7 @@ export default class MainPresenter {
     this.eventsContainer.append(pointsListElement);
     render(new FormCreation({offers: this.tripModel.getOfferByType('flight').offers, destinations: this.tripModel.getDestinations()}), pointsListElement, RenderPosition.AFTERBEGIN);
 
-    const points = this.tripModel.getPoints();
+    const points = [...this.tripModel.getPoints()];
     points.forEach((point) => {
       const destination = this.tripModel.getDestinationById(point.destination);
 
