@@ -1,5 +1,5 @@
 import { createElement } from '../render';
-import { capitalize, classDate, classDateTime, createDate, createTime } from '../utils/utils';
+import { capitalize, humanizeDate, getClassDate, getEventDuration, humanizeTime, getFullIsoDate } from '../utils/utils';
 
 function createSelectedOfferTemplate(offer){
   return `<li class="event__offer">
@@ -16,18 +16,18 @@ function createSelectedOffersTemplate(offers) {
 function createRoutePointTemplate(point){
   return `<li class="trip-events__item">
     <div class="event">
-      <time class="event__date" datetime="${classDate(point.dateFrom)}">${createDate(point.dateFrom)}</time>
+      <time class="event__date" datetime="${getClassDate(point.dateFrom)}">${humanizeDate(point.dateFrom)}</time>
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${point.type}.png" alt="Event type icon">
       </div>
       <h3 class="event__title">${capitalize(point.type)} ${capitalize(point.destination.name)}</h3>
       <div class="event__schedule">
         <p class="event__time">
-          <time class="event__start-time" datetime="${classDateTime(point.dateFrom)}">${createTime(point.dateFrom)}</time>
+          <time class="event__start-time" datetime="${getFullIsoDate(point.dateFrom)}">${humanizeTime(point.dateFrom)}</time>
             &mdash;
-          <time class="event__end-time" datetime="${classDateTime(point.dateTo)}">${createTime(point.dateTo)}</time>
+          <time class="event__end-time" datetime="${getFullIsoDate(point.dateTo)}">${humanizeTime(point.dateTo)}</time>
         </p>
-        <p class="event__duration"></p>
+        <p class="event__duration">${getEventDuration(point.dateFrom, point.dateTo)}</p>
       </div>
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${point.basePrice}</span>

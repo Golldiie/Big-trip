@@ -1,5 +1,5 @@
 import { createElement } from '../render';
-import { capitalize } from '../utils/utils';
+import { capitalize, humanizeFormDate } from '../utils/utils';
 import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from './forms';
 
 function createFormEditingTemplate(point, destination, offers, destinations){
@@ -32,10 +32,10 @@ function createFormEditingTemplate(point, destination, offers, destinations){
 
                   <div class="event__field-group  event__field-group--time">
                     <label class="visually-hidden" for="event-start-time-${point.id}">From</label>
-                    <input class="event__input  event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${point.dateFrom}">
+                    <input class="event__input  event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${humanizeFormDate(point.dateFrom)}">
                     &mdash;
                     <label class="visually-hidden" for="event-end-time-${point.id}">To</label>
-                    <input class="event__input  event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${point.dateTo}">
+                    <input class="event__input  event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${humanizeFormDate(point.dateTo)}">
                   </div>
 
                   <div class="event__field-group  event__field-group--price">
