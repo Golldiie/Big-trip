@@ -1,12 +1,11 @@
 import { createElement } from '../render';
-
-const FILTER_TYPES = ['Everything', 'Future', 'Present', 'Past'];
+import { FILTER_TYPES } from '../const';
 
 function createFilterItemTemplate(type){
   return `<div class="trip-filters__filter">
-                  <input id="filter-everything" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type.toLowerCase()}">
-                  <label class="trip-filters__filter-label" for="filter-${type.toLowerCase()}">${type}</label>
-                </div>`;
+    <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}">
+    <label class="trip-filters__filter-label" for="filter-${type}">${type}</label>
+  </div>`;
 }
 
 function createFiltersTemplate(){
