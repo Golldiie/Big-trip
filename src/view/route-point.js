@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 import { capitalize, humanizeDate, getClassDate, getEventDuration, humanizeTime, getFullIsoDate } from '../utils/utils';
 
 function createSelectedOfferTemplate(offer){
@@ -50,25 +50,16 @@ function createRoutePointTemplate(point){
 `;
 }
 
-export default class RoutePoint {
+export default class RoutePoint extends AbstractView{
+  #point = null;
+
   constructor(point) {
-    this.point = point;
+    super();
+    this.#point = point;
   }
 
-  getTemplate(){
+  get template(){
     return createRoutePointTemplate(this.point);
-  }
-
-  getElement(){
-    if(!this.element){
-      return createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement(){
-    this.element = null;
   }
 }
 

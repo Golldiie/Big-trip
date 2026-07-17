@@ -1,6 +1,6 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 import { capitalize, humanizeFormDate } from '../utils/utils';
-import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from './forms';
+import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 
 function createFormEditingTemplate(point, destination, offers, destinations){
   return `<form class="event event--edit" action="#" method="post">
@@ -69,28 +69,21 @@ function createFormEditingTemplate(point, destination, offers, destinations){
               </form>`;
 }
 
-export default class FormEditing{
+export default class FormEditing extends AbstractView{
+  #point = null;
+  #destination = null;
+  #offers = null;
+  #destinations = null;
 
   constructor({point, destination, offers, destinations}) {
-    this.point = point;
-    this.destination = destination;
-    this.offers = offers;
-    this.destinations = destinations;
+    super();
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#destinations = destinations;
   }
 
-  getTemplate(){
-    return createFormEditingTemplate(this.point, this.destination, this.offers, this.destinations);
-  }
-
-  getElement(){
-    if(!this.element){
-      return createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement(){
-    this.element = null;
+  get template(){
+    return createFormEditingTemplate(this.#point, this.#destination, this.#offers, this.#destinations);
   }
 }

@@ -1,5 +1,5 @@
-import { createElement } from '../render';
-import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from './forms';
+import AbstractView from '../framework/view/abstract-view';
+import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 
 
 function createFormCreationTemplate(offers, destinations){
@@ -62,25 +62,17 @@ function createFormCreationTemplate(offers, destinations){
   </li>`;
 }
 
-export default class FormCreation {
+export default class FormCreation extends AbstractView{
+  #offers = null;
+  #destinations = null;
+
   constructor({offers, destinations}) {
-    this.offers = offers;
-    this.destinations = destinations;
+    super();
+    this.#offers = offers;
+    this.#destinations = destinations;
   }
 
-  getTemplate(){
-    return createFormCreationTemplate(this.offers, this.destinations);
-  }
-
-  getElement(){
-    if(!this.element){
-      return createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement(){
-    this.element = null;
+  get template(){
+    return createFormCreationTemplate(this.#offers, this.#destinations);
   }
 }
