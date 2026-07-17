@@ -50,16 +50,36 @@ function createRoutePointTemplate(point){
 `;
 }
 
-export default class RoutePoint extends AbstractView{
+export default class RoutePoint extends AbstractView {
   #point = null;
+  #destination = null;
+  #offers = null;
+  #handleEditClick = null;
 
-  constructor(point) {
+  constructor({point, destination, offers, onEditClick}) {
     super();
+
     this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#handleEditClick = onEditClick;
+
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
   }
 
-  get template(){
-    return createRoutePointTemplate(this.#point);
+  get template() {
+    return createRoutePointTemplate({
+      ...this.#point,
+      destination: this.#destination,
+      offers: this.#offers,
+    });
   }
+
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick();
+  };
 }
 

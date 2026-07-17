@@ -1,8 +1,8 @@
-import { render } from '../framework/render.js';
+import { render, replace } from '../framework/render.js';
 import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
 import RoutePoint from '../view/route-point.js';
-
+import FormEditing from '../view/form-editing.js';
 
 export default class MainPresenter {
   constructor({filtersContainer, eventsContainer, tripModel}) {
@@ -45,9 +45,9 @@ export default class MainPresenter {
 
   #preparePoint(point) {
     return {
-      ...point,
+      point,
       destination: this.tripModel.getDestinationById(point.destination),
-      offers: this.tripModel.getOfferById(point.type, point.offers)
+      offers: this.tripModel.getOfferById(point.type, point.offers),
     };
   }
 
@@ -55,15 +55,42 @@ export default class MainPresenter {
     return {
       point,
       destination: this.tripModel.getDestinationById(point.destination),
-      offers: this.tripModel.getOfferById(point.type, point.offers),
-      destinations: this.tripModel.getDestinations()
+      offers: this.tripModel.getOfferByType(point.type).offers,
+      selectedOffers: point.offers,
+      destinations: this.tripModel.getDestinations(),
     };
   }
 
   #renderRoutePoint(point, container) {
-    const routePointComponent = new RoutePoint(
-      this.#preparePoint(point)
-    );
+    const routePointComponent = new RoutePoint({
+      ...this.#preparePoint(point),
+      onEditClick: () => replacePointToForm(),
+    });
+
+    const formEditingComponent = new FormEditing({
+      ...this.#prepareEditingPoint(point),
+
+      onFormSubmit: () => replaceFormToPoint(),
+      onRollupClick: () => replaceFormToPoint(),
+    });
+
+    const escKeyDownHandler = (evt) => {
+      if (evt.key === 'Escape') {
+        evt.preventDefault();
+        replaceFormToPoint();
+        document.removeEventListener('keydown', escKeyDownHandler);
+      }
+    };
+
+    function replacePointToForm() {
+      replace(formEditingComponent, routePointComponent);
+      document.addEventListener('keydown', escKeyDownHandler);
+    }
+
+    function replaceFormToPoint() {
+      replace(routePointComponent, formEditingComponent);
+      document.removeEventListener('keydown', escKeyDownHandler);
+    }
 
     render(routePointComponent, container);
   }
