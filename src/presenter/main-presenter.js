@@ -1,7 +1,6 @@
-import { render, RenderPosition } from '../framework/render.js';
+import { render } from '../framework/render.js';
 import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
-import FormEditing from '../view/form-editing.js';
 import RoutePoint from '../view/route-point.js';
 
 
@@ -18,7 +17,6 @@ export default class MainPresenter {
 
     const pointsListElement = this.#createPointsList();
 
-    this.#renderEditingForm(pointsListElement);
     this.#renderRoutePoints(pointsListElement);
   }
 
@@ -39,22 +37,9 @@ export default class MainPresenter {
     return pointsListElement;
   }
 
-  #renderEditingForm(container) {
-    const point = this.tripModel.getPoints()[0];
-
-    render(
-      new FormEditing(this.#prepareEditingPoint(point)),
-      container,
-      RenderPosition.AFTERBEGIN
-    );
-  }
-
   #renderRoutePoints(container) {
     this.tripModel.getPoints().forEach((point) => {
-      render(
-        new RoutePoint(this.#preparePoint(point)),
-        container
-      );
+      this.#renderRoutePoint(point, container);
     });
   }
 
@@ -73,5 +58,13 @@ export default class MainPresenter {
       offers: this.tripModel.getOfferById(point.type, point.offers),
       destinations: this.tripModel.getDestinations()
     };
+  }
+
+  #renderRoutePoint(point, container) {
+    const routePointComponent = new RoutePoint(
+      this.#preparePoint(point)
+    );
+
+    render(routePointComponent, container);
   }
 }
