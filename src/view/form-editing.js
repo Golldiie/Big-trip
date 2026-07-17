@@ -1,8 +1,34 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view';
 import { capitalize, humanizeFormDate } from '../utils/utils';
-import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from './forms';
+import { createEventTypeListTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 
-function createFormEditingTemplate(point, destination, offers, destinations){
+function createOfferItemTemplate(offer, selectedOffers) {
+  const isChecked = selectedOffers.includes(offer.id);
+
+  return `
+    <div class="event__offer-selector">
+      <input
+        class="event__offer-checkbox visually-hidden"
+        id="event-offer-${offer.id}"
+        type="checkbox"
+        ${isChecked ? 'checked' : ''}
+      >
+      <label class="event__offer-label" for="event-offer-${offer.id}">
+        <span class="event__offer-title">${offer.title}</span>
+        +€&nbsp;
+        <span class="event__offer-price">${offer.price}</span>
+      </label>
+    </div>
+  `;
+}
+
+function createOffersTemplate(offers, selectedOffers) {
+  return offers
+    .map((offer) => createOfferItemTemplate(offer, selectedOffers))
+    .join('');
+}
+
+function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
   return `<form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
@@ -57,40 +83,61 @@ function createFormEditingTemplate(point, destination, offers, destinations){
                     <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
                     <div class="event__available-offers">
-                      ${createOffersTemplate(offers)}
+                      ${createOffersTemplate(offers, selectedOffers)}
                     </div>
                   </section>
 
                   <section class="event__section  event__section--destination">
                     <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                    ${createDestinationTemplate()}
+                    ${createDestinationTemplate(destination)}
                   </section>
                 </section>
               </form>`;
 }
 
-export default class FormEditing{
+export default class FormEditing extends AbstractView{
+  #point = null;
+  #destination = null;
+  #offers = null;
+  #selectedOffers = null;
+  #destinations = null;
 
-  constructor({point, destination, offers, destinations}) {
-    this.point = point;
-    this.destination = destination;
-    this.offers = offers;
-    this.destinations = destinations;
+  constructor({point,
+    destination,
+    offers,
+    selectedOffers,
+    destinations,
+    onFormSubmit,
+    onRollupClick}){
+    super();
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#selectedOffers = selectedOffers;
+    this.#destinations = destinations;
+
+
+    this._callback.formSubmit = onFormSubmit;
+    this._callback.rollupClick = onRollupClick;
+
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupClickHandler);
+
+    this.element.addEventListener('submit', this.#formSubmitHandler);
   }
 
-  getTemplate(){
-    return createFormEditingTemplate(this.point, this.destination, this.offers, this.destinations);
+  get template(){
+    return createFormEditingTemplate(this.#point, this.#destination, this.#offers, this.#selectedOffers, this.#destinations);
   }
 
-  getElement(){
-    if(!this.element){
-      return createElement(this.getTemplate());
-    }
+  #rollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.rollupClick();
+  };
 
-    return this.element;
-  }
-
-  removeElement(){
-    this.element = null;
-  }
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.formSubmit();
+  };
 }
