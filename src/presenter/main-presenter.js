@@ -1,7 +1,7 @@
-import { render, RenderPosition } from '../render.js';
+import { render, RenderPosition } from '../framework/render.js';
 import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
-import FormCreation from '../view/form-creation.js';
+import FormEditing from '../view/form-editing.js';
 import RoutePoint from '../view/route-point.js';
 
 
@@ -12,29 +12,66 @@ export default class MainPresenter {
     this.tripModel = tripModel;
   }
 
-  init(){
+  init() {
+    this.#renderFilter();
+    this.#renderSort();
+
+    const pointsListElement = this.#createPointsList();
+
+    this.#renderEditingForm(pointsListElement);
+    this.#renderRoutePoints(pointsListElement);
+  }
+
+  #renderFilter() {
     render(new Filter(), this.filtersContainer);
+  }
+
+  #renderSort() {
     render(new Sort(), this.eventsContainer);
+  }
+
+  #createPointsList() {
     const pointsListElement = document.createElement('ul');
     pointsListElement.classList.add('trip-events__list');
 
     this.eventsContainer.append(pointsListElement);
-    render(new FormCreation({offers: this.tripModel.getOfferByType('flight').offers, destinations: this.tripModel.getDestinations()}), pointsListElement, RenderPosition.AFTERBEGIN);
 
-    const points = [...this.tripModel.getPoints()];
-    points.forEach((point) => {
-      const destination = this.tripModel.getDestinationById(point.destination);
+    return pointsListElement;
+  }
 
-      const offers = this.tripModel.getOfferById(point.type, point.offers);
+  #renderEditingForm(container) {
+    const point = this.tripModel.getPoints()[0];
 
+    render(
+      new FormEditing(this.#prepareEditingPoint(point)),
+      container,
+      RenderPosition.AFTERBEGIN
+    );
+  }
+
+  #renderRoutePoints(container) {
+    this.tripModel.getPoints().forEach((point) => {
       render(
-        new RoutePoint({
-          ...point,
-          destination,
-          offers
-        }),
-        pointsListElement
+        new RoutePoint(this.#preparePoint(point)),
+        container
       );
     });
+  }
+
+  #preparePoint(point) {
+    return {
+      ...point,
+      destination: this.tripModel.getDestinationById(point.destination),
+      offers: this.tripModel.getOfferById(point.type, point.offers)
+    };
+  }
+
+  #prepareEditingPoint(point) {
+    return {
+      point,
+      destination: this.tripModel.getDestinationById(point.destination),
+      offers: this.tripModel.getOfferById(point.type, point.offers),
+      destinations: this.tripModel.getDestinations()
+    };
   }
 }

@@ -59,7 +59,7 @@ export default class RoutePoint extends AbstractView{
   }
 
   get template(){
-    return createRoutePointTemplate(this.point);
+    return createRoutePointTemplate(this.#point);
   }
 }
 
