@@ -1,5 +1,5 @@
-import AbstractView from '../framework/view/abstract-view';
-import { capitalize, humanizeFormDate } from '../utils/utils';
+import AbstractView from '../framework/view/abstract-view.js';
+import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 
 function createOfferItemTemplate(offer, selectedOffers) {

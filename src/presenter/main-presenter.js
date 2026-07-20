@@ -3,6 +3,7 @@ import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
 import RoutePoint from '../view/route-point.js';
 import FormEditing from '../view/form-editing.js';
+import { DEFAULT_FILTER, DEFAULT_SORT } from '../const.js';
 
 export default class MainPresenter {
   constructor({filtersContainer, eventsContainer, tripModel}) {
@@ -21,11 +22,11 @@ export default class MainPresenter {
   }
 
   #renderFilter() {
-    render(new Filter(), this.filtersContainer);
+    render(new Filter(DEFAULT_FILTER), this.filtersContainer);
   }
 
   #renderSort() {
-    render(new Sort(), this.eventsContainer);
+    render(new Sort(DEFAULT_SORT), this.eventsContainer);
   }
 
   #createPointsList() {
