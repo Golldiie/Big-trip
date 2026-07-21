@@ -3,9 +3,12 @@ import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
 import RoutePoint from '../view/route-point.js';
 import FormEditing from '../view/form-editing.js';
-import { DEFAULT_FILTER, DEFAULT_SORT } from '../const.js';
+import { DEFAULT_SORT, MessageBoard } from '../const.js';
+import { generateFilters } from '../mocks/filters.js';
+import ListMessage from '../view/list-message.js';
 
 export default class MainPresenter {
+
   constructor({filtersContainer, eventsContainer, tripModel}) {
     this.filtersContainer = filtersContainer;
     this.eventsContainer = eventsContainer;
@@ -22,7 +25,8 @@ export default class MainPresenter {
   }
 
   #renderFilter() {
-    render(new Filter(DEFAULT_FILTER), this.filtersContainer);
+    const filters = generateFilters(this.tripModel.points);
+    render(new Filter({filters}), this.filtersContainer);
   }
 
   #renderSort() {
@@ -30,6 +34,13 @@ export default class MainPresenter {
   }
 
   #createPointsList() {
+    const points = this.tripModel.getPoints();
+
+    if(points.length === 0){
+      render(new ListMessage({message: MessageBoard.EMPTY_LIST}), this.eventsContainer);
+      return;
+    }
+
     const pointsListElement = document.createElement('ul');
     pointsListElement.classList.add('trip-events__list');
 
