@@ -19,7 +19,7 @@ const mockPoints = [
     'dateFrom': '2026-08-24T06:54:05.704Z',
     'date_to': '2026-08-25T07:06:05.704Z',
     'destination': 'de831c97-902a-4d75-befc-f07ae630e63d',
-    'is_favorite': false,
+    'isFavorite': false,
     'offers': [],
     'type': 'restaurant'
   },

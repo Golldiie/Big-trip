@@ -26,8 +26,6 @@ export const createIdGenerator = (startFrom = 1) => {
 };
 
 export function humanizeDate(date) {
-  // 'MMM' — сокращенное название месяца (Jul)
-  // 'D' — день без нуля впереди (15)
   return dayjs(date).format('MMM D');
 }
 
@@ -38,20 +36,25 @@ export function getClassDate(date) {
 export function getEventDuration(dateFrom, dateTo) {
   const start = dayjs(dateFrom);
   const end = dayjs(dateTo);
-  const diff = dayjs.duration(end.diff(start));
 
-  const days = diff.days();
-  const hours = diff.hours();
-  const minutes = diff.minutes();
+  const diff = dayjs.duration(Math.abs(end.diff(start)));
 
-  const pad = (num) => String(num).padStart(2, '0');
+  const totalMinutes = diff.asMinutes();
 
-  if (days > 1) {
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = Math.floor(totalMinutes % 60);
+
+  const pad = (value) => String(value).padStart(2, '0');
+
+  if (days > 0) {
     return `${pad(days)}D ${pad(hours)}H ${pad(minutes)}M`;
   }
-  if (hours > 1) {
+
+  if (hours > 0) {
     return `${pad(hours)}H ${pad(minutes)}M`;
   }
+
   return `${pad(minutes)}M`;
 }
 
@@ -65,4 +68,14 @@ export function getFullIsoDate(date) {
 
 export function humanizeFormDate(date) {
   return dayjs(date).format('DD/MM/YY HH:mm');
+}
+
+export const isFuture = (point) => dayjs(point.dateFrom).isAfter(dayjs());
+
+export const isPast = (point) => dayjs(point.dateFrom).isBefore(dayjs());
+
+export function isPresent(point){
+  const now = dayjs();
+
+  return !dayjs(point.dateFrom).isAfter(now) && !dayjs(point.dateTo).isBefore(now);
 }
