@@ -1,5 +1,5 @@
-import { capitalize } from '../utils/utils';
-import { EVENT_TYPES } from '../const';
+import { capitalize } from '../utils/utils.js';
+import { EVENT_TYPES } from '../const.js';
 
 function createEventItemTemplate(type){
   return `<div class="event__type-item">
