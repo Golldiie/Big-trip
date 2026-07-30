@@ -62,6 +62,7 @@ export default class MainPresenter {
         pointsContainer: container,
         tripModel: this.tripModel,
         onDataChange: this.#handlePointChange,
+        onModeChange: this.#handleModeChange,
       });
 
       pointPresenter.init(point);
@@ -76,5 +77,13 @@ export default class MainPresenter {
     this.#pointPresenters
       .get(updatedPoint.id)
       .update(updatedPoint);
+  };
+
+  #handleModeChange = (currentPresenter) => {
+    this.#pointPresenters.forEach((presenter) => {
+      if (presenter !== currentPresenter) {
+        presenter.resetView();
+      }
+    });
   };
 }

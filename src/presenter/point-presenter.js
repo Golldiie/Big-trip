@@ -2,6 +2,11 @@ import {render, replace} from '../framework/render.js';
 import RoutePoint from '../view/route-point.js';
 import FormEditing from '../view/form-editing.js';
 
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING'
+};
+
 export default class PointPresenter {
   #pointsContainer = null;
   #tripModel = null;
@@ -9,13 +14,16 @@ export default class PointPresenter {
   #routePointComponent = null;
   #formEditingComponent = null;
   #handleDataChange = null;
+  #handleModeChange = null;
 
   #point = null;
+  #mode = Mode.DEFAULT;
 
-  constructor({pointsContainer, tripModel, onDataChange}) {
+  constructor({pointsContainer, tripModel, onDataChange, onModeChange}) {
     this.#pointsContainer = pointsContainer;
     this.#tripModel = tripModel;
     this.#handleDataChange = onDataChange;
+    this.#handleModeChange = onModeChange;
   }
 
   init(point) {
@@ -34,9 +42,11 @@ export default class PointPresenter {
 
     this.#createComponents(point);
 
-    replace(this.#routePointComponent, prevRoutePointComponent);
+    if (this.#mode === Mode.DEFAULT) {
+      replace(this.#routePointComponent, prevRoutePointComponent);
+    }
 
-    if (prevFormEditingComponent.element.parentNode) {
+    if (this.#mode === Mode.EDITING) {
       replace(this.#formEditingComponent, prevFormEditingComponent);
     }
   }
@@ -73,7 +83,16 @@ export default class PointPresenter {
     };
   }
 
+  resetView() {
+    if (this.#mode !== Mode.DEFAULT) {
+      this.#replaceFormToPoint();
+    }
+  }
+
+
   #replacePointToForm() {
+    this.#handleModeChange(this);
+    this.#mode = Mode.EDITING;
     replace(this.#formEditingComponent, this.#routePointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
   }
@@ -81,6 +100,7 @@ export default class PointPresenter {
   #replaceFormToPoint() {
     replace(this.#routePointComponent, this.#formEditingComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = Mode.DEFAULT;
   }
 
   #escKeyDownHandler = (evt) => {
@@ -98,7 +118,8 @@ export default class PointPresenter {
     this.#replacePointToForm();
   };
 
-  #handleFormSubmit = () => {
+  #handleFormSubmit = (point) => {
+    this.#handleDataChange(point);
     this.#replaceFormToPoint();
   };
 
