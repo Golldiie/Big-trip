@@ -71,7 +71,7 @@ export default class RoutePoint extends AbstractView {
       .addEventListener('click', this.#editClickHandler);
 
     this.element
-      .querySelector('event__favorite-btn')
+      .querySelector('.event__favorite-btn')
       .addEventListener('click', this.#favouriteClickHandler);
   }
 
@@ -90,7 +90,7 @@ export default class RoutePoint extends AbstractView {
 
   #favouriteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFavouriteClick({...this.#point, isFavourite: !this.#point.isFavorite});
+    this.#handleFavouriteClick({...this.#point, isFavorite: !this.#point.isFavorite});
   };
 }
 

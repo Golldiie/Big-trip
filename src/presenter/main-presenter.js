@@ -61,6 +61,7 @@ export default class MainPresenter {
       const pointPresenter = new PointPresenter({
         pointsContainer: container,
         tripModel: this.tripModel,
+        onDataChange: this.#handlePointChange,
       });
 
       pointPresenter.init(point);
@@ -68,4 +69,12 @@ export default class MainPresenter {
       this.#pointPresenters.set(point.id, pointPresenter);
     });
   }
+
+  #handlePointChange = (updatedPoint) => {
+    this.tripModel.updatePoint(updatedPoint);
+
+    this.#pointPresenters
+      .get(updatedPoint.id)
+      .update(updatedPoint);
+  };
 }

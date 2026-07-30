@@ -8,20 +8,44 @@ export default class PointPresenter {
 
   #routePointComponent = null;
   #formEditingComponent = null;
+  #handleDataChange = null;
 
   #point = null;
 
-  constructor({pointsContainer, tripModel}) {
+  constructor({pointsContainer, tripModel, onDataChange}) {
     this.#pointsContainer = pointsContainer;
     this.#tripModel = tripModel;
+    this.#handleDataChange = onDataChange;
   }
 
   init(point) {
     this.#point = point;
 
+    this.#createComponents(point);
+
+    render(this.#routePointComponent, this.#pointsContainer);
+  }
+
+  update(point) {
+    this.#point = point;
+
+    const prevRoutePointComponent = this.#routePointComponent;
+    const prevFormEditingComponent = this.#formEditingComponent;
+
+    this.#createComponents(point);
+
+    replace(this.#routePointComponent, prevRoutePointComponent);
+
+    if (prevFormEditingComponent.element.parentNode) {
+      replace(this.#formEditingComponent, prevFormEditingComponent);
+    }
+  }
+
+  #createComponents(point) {
     this.#routePointComponent = new RoutePoint({
       ...this.#preparePoint(point),
       onEditClick: this.#handleEditClick,
+      onFavouriteClick: this.#handleFavouriteClick,
     });
 
     this.#formEditingComponent = new FormEditing({
@@ -29,8 +53,6 @@ export default class PointPresenter {
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
     });
-
-    render(this.#routePointComponent, this.#pointsContainer);
   }
 
   #preparePoint(point) {
@@ -66,6 +88,10 @@ export default class PointPresenter {
       evt.preventDefault();
       this.#replaceFormToPoint();
     }
+  };
+
+  #handleFavouriteClick = (updatedPoint) => {
+    this.#handleDataChange(updatedPoint);
   };
 
   #handleEditClick = () => {
