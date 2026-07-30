@@ -1,4 +1,4 @@
-import {render, replace} from '../framework/render.js';
+import {render, replace, remove} from '../framework/render.js';
 import RoutePoint from '../view/route-point.js';
 import FormEditing from '../view/form-editing.js';
 
@@ -49,6 +49,12 @@ export default class PointPresenter {
     if (this.#mode === Mode.EDITING) {
       replace(this.#formEditingComponent, prevFormEditingComponent);
     }
+  }
+
+  destroy() {
+    remove(this.#routePointComponent);
+    remove(this.#formEditingComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #createComponents(point) {
