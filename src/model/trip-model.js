@@ -1,6 +1,6 @@
-import { getRandomPoint } from '../mocks/points';
-import { mockOffers } from '../mocks/offers';
-import { mockDestinations } from '../mocks/destinations';
+import { getRandomPoint } from '../mocks/points.js';
+import { mockOffers } from '../mocks/offers.js';
+import { mockDestinations } from '../mocks/destinations.js';
 
 const POINT_COUNT = 4;
 
@@ -26,5 +26,17 @@ export default class TripModel {
   getOfferById(type, itemsId){
     const offersType = this.getOfferByType(type);
     return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
+  }
+
+  updatePoint(updatedPoint) {
+    const index = this.points.findIndex(
+      (point) => point.id === updatedPoint.id
+    );
+
+    if (index === -1) {
+      return;
+    }
+
+    this.points[index] = updatedPoint;
   }
 }

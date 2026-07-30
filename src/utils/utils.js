@@ -79,3 +79,19 @@ export function isPresent(point){
 
   return !dayjs(point.dateFrom).isAfter(now) && !dayjs(point.dateTo).isBefore(now);
 }
+
+export function sortByDate(pointA, pointB) {
+  return new Date(pointA.dateFrom) - new Date(pointB.dateFrom);
+}
+
+export function sortByPrice(pointA, pointB) {
+  return pointB.basePrice - pointA.basePrice;
+}
+
+export function sortByTime(pointA, pointB) {
+  const durationA = new Date(pointA.dateTo) - new Date(pointA.dateFrom);
+  const durationB = new Date(pointB.dateTo) - new Date(pointB.dateFrom);
+
+  return durationB - durationA;
+}
+

@@ -22,7 +22,7 @@ export const DEFAULT_FILTER = 'everything';
 
 export const POINT_COUNT = 4;
 
-export const SORT_TYPES = ['day', 'event', 'time', 'price', 'offers'];
+export const SortType = ['day', 'event', 'time', 'price', 'offers'];
 export const DEFAULT_SORT = 'day';
 
 export const MessageBoard = {
