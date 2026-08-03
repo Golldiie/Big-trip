@@ -1,6 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 function createOfferItemTemplate(offer, selectedOffers) {
   const isChecked = selectedOffers.includes(offer.id);
@@ -96,6 +98,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
 }
 
 export default class FormEditing extends AbstractStatefulView{
+  #datepicker = null;
 
   constructor({point, destination, offers, offersByType, selectedOffers, destinations, onFormSubmit, onRollupClick}){
     super();
@@ -130,10 +133,25 @@ export default class FormEditing extends AbstractStatefulView{
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.#setDatepicker();
   };
 
   get template(){
     return createFormEditingTemplate(this._state.point, this._state.destination, this._state.offers, this._state.selectedOffers, this._state.destinations);
+  }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepicker) {
+      this.#datepicker.destroy();
+      this.#datepicker = null;
+    }
+  }
+
+  reset(point){
+    this.updateElement(FormEditing.parsePointToState(point));
   }
 
   #typeChangeHandler = (evt) => {
@@ -155,6 +173,46 @@ export default class FormEditing extends AbstractStatefulView{
 
       offers: offerGroup?.offers ?? [],
       selectedOffers: [],
+    });
+  };
+
+  #setDatepicker() {
+    this.#datepicker = flatpickr(
+      this.element.querySelector('[name="event-start-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.point.dateFrom,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+
+    flatpickr(
+      this.element.querySelector('[name="event-end-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.point.dateTo,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  }
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      point: {
+        ...this._state.point,
+        dateFrom: userDate,
+      },
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      point: {
+        ...this._state.point,
+        dateTo: userDate,
+      },
     });
   };
 
