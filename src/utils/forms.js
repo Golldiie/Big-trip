@@ -1,15 +1,15 @@
 import { capitalize } from '../utils/utils.js';
 import { EVENT_TYPES } from '../const.js';
 
-function createEventItemTemplate(type){
+function createEventItemTemplate(type, currentType){
   return `<div class="event__type-item">
-    <input id="event-type-${type}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
+    <input id="event-type-${type}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}" ${type === currentType ? 'checked' : ''}>
     <label class="event__type-label  event__type-label--${type}" for="event-type-${type}">${capitalize(type)}</label>
   </div>`;
 }
 
-export function createEventTypeListTemplate() {
-  return EVENT_TYPES.map((type) => createEventItemTemplate(type)).join('');
+export function createEventTypeListTemplate(currentType) {
+  return EVENT_TYPES.map((type) => createEventItemTemplate(type, currentType)).join('');
 }
 
 function createOfferItemTemplate(offer){

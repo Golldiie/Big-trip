@@ -84,6 +84,7 @@ export default class PointPresenter {
       point,
       destination: this.#tripModel.getDestinationById(point.destination),
       offers: this.#tripModel.getOfferByType(point.type).offers,
+      offersByType: this.#tripModel.getOffers(),
       selectedOffers: point.offers,
       destinations: this.#tripModel.getDestinations(),
     };
