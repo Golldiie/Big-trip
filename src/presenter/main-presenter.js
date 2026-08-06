@@ -1,4 +1,4 @@
-import { render, replace} from '../framework/render.js';
+import { render } from '../framework/render.js';
 import Sort from '../view/sort.js';
 import Filter from '../view/filter.js';
 import { DEFAULT_SORT, MessageBoard } from '../const.js';
@@ -11,7 +11,6 @@ export default class MainPresenter {
   #pointPresenters = new Map();
   #sortComponent = null;
   #currentSortType = DEFAULT_SORT;
-  #points = [];
 
   constructor({ filtersContainer, eventsContainer, tripModel }) {
     this.filtersContainer = filtersContainer;
@@ -19,12 +18,22 @@ export default class MainPresenter {
     this.tripModel = tripModel;
   }
 
-  get points(){
-    return this.tripModel.points;
+  get points() {
+    const points = [...this.tripModel.points];
+
+    switch (this.#currentSortType) {
+      case 'price':
+        return points.sort(sortByPrice);
+
+      case 'time':
+        return points.sort(sortByTime);
+
+      default:
+        return points.sort(sortByDate);
+    }
   }
 
   init() {
-    this.#points = [...this.tripModel.getPoints()].sort(sortByDate);
     this.#renderFilter();
     this.#renderSort();
 
@@ -38,7 +47,7 @@ export default class MainPresenter {
   }
 
   #renderFilter() {
-    const filters = generateFilters(this.tripModel.getPoints());
+    const filters = generateFilters(this.points);
     render(new Filter({ filters }), this.filtersContainer);
   }
 
@@ -55,39 +64,16 @@ export default class MainPresenter {
       return;
     }
 
-    const prevSortComponent = this.#sortComponent;
-
     this.#currentSortType = sortType;
-
-    switch (sortType) {
-      case 'price':
-        this.#points = [...this.#points].sort(sortByPrice);
-        break;
-
-      case 'time':
-        this.#points = [...this.#points].sort(sortByTime);
-        break;
-
-      case 'day':
-        this.#points = [...this.#points].sort(sortByDate);
-        break;
-    }
-
-    this.#sortComponent = new Sort(this.#currentSortType, {
-      onSortTypeChange: this.#handleSortTypeChange,
-    });
-
-    replace(this.#sortComponent, prevSortComponent);
 
     this.#clearPoints();
 
     const pointsListElement = this.eventsContainer.querySelector('.trip-events__list');
-
-    this.#renderRoutePoints(pointsListElement, this.#points);
+    this.#renderRoutePoints(pointsListElement, this.points);
   };
 
   #createPointsList() {
-    const points = this.#points;
+    const points = this.points;
 
     if (points.length === 0) {
       render(
@@ -117,7 +103,7 @@ export default class MainPresenter {
       .innerHTML = '';
   }
 
-  #renderRoutePoints(container, points = this.#points) {
+  #renderRoutePoints(container, points = this.points) {
     points.forEach((point) => {
       const pointPresenter = new PointPresenter({
         pointsContainer: container,

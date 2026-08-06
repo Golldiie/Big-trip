@@ -14,6 +14,10 @@ export default class TripModel extends Observable {
     return this.#points;
   }
 
+  setPoints(points){
+    this.points = points;
+  }
+
   getOffers = () => this.offers;
   getDestinations = () => this.destinations;
 
@@ -38,7 +42,7 @@ export default class TripModel extends Observable {
     );
 
     if (index === -1) {
-      return;
+      throw new Error('Can\'t update unexisting task');
     }
 
     this.#points[index] = updatedPoint;
