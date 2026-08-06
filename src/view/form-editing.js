@@ -1,6 +1,8 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 function createOfferItemTemplate(offer, selectedOffers) {
   const isChecked = selectedOffers.includes(offer.id);
@@ -22,10 +24,18 @@ function createOfferItemTemplate(offer, selectedOffers) {
   `;
 }
 
-function createOffersTemplate(offers, selectedOffers) {
-  return offers
-    .map((offer) => createOfferItemTemplate(offer, selectedOffers))
-    .join('');
+function createOffersTemplate(offers, selectedOffers){
+  if(!offers.length){
+    return '';
+  }
+
+  return `<section class="event__section  event__section--offers">
+    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+    <div class="event__available-offers">
+      ${offers.map((offer) => createOfferItemTemplate(offer, selectedOffers)).join('')}
+    </div>
+  </section>`;
 }
 
 function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
@@ -41,7 +51,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
         <div class="event__type-list">
           <fieldset class="event__type-group">
             <legend class="visually-hidden">Event type</legend>
-            ${createEventTypeListTemplate()}
+            ${createEventTypeListTemplate(point.type)}
           </fieldset>
         </div>
       </div>
@@ -79,57 +89,146 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
                   </button>
                 </header>
                 <section class="event__details">
-                  <section class="event__section  event__section--offers">
-                    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+                  ${createOffersTemplate(offers, selectedOffers)}
 
-                    <div class="event__available-offers">
-                      ${createOffersTemplate(offers, selectedOffers)}
-                    </div>
-                  </section>
-
-                  <section class="event__section  event__section--destination">
-                    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                    ${createDestinationTemplate(destination)}
-                  </section>
+                  ${createDestinationTemplate(destination)}
                 </section>
               </form>`;
 }
 
-export default class FormEditing extends AbstractView{
-  #point = null;
-  #destination = null;
-  #offers = null;
-  #selectedOffers = null;
-  #destinations = null;
+export default class FormEditing extends AbstractStatefulView{
+  #datepicker = null;
 
-  constructor({point,
-    destination,
-    offers,
-    selectedOffers,
-    destinations,
-    onFormSubmit,
-    onRollupClick}){
+  constructor({point, destination, offers, offersByType, selectedOffers, destinations, onFormSubmit, onRollupClick}){
     super();
-    this.#point = point;
-    this.#destination = destination;
-    this.#offers = offers;
-    this.#selectedOffers = selectedOffers;
-    this.#destinations = destinations;
+    this._setState(FormEditing.parsePointToState({
+      point,
+      destination,
+      offers,
+      offersByType,
+      selectedOffers,
+      destinations,
+    }));
 
 
     this._callback.formSubmit = onFormSubmit;
     this._callback.rollupClick = onRollupClick;
+    this._restoreHandlers();
+  }
 
+  _restoreHandlers = () => {
     this.element
       .querySelector('.event__rollup-btn')
       .addEventListener('click', this.#rollupClickHandler);
 
-    this.element.addEventListener('submit', this.#formSubmitHandler);
-  }
+    this.element
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element
+      .querySelector('.event__type-list')
+      .addEventListener('change', this.#typeChangeHandler);
+
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+
+    this.#setDatepicker();
+  };
 
   get template(){
-    return createFormEditingTemplate(this.#point, this.#destination, this.#offers, this.#selectedOffers, this.#destinations);
+    return createFormEditingTemplate(this._state.point, this._state.destination, this._state.offers, this._state.selectedOffers, this._state.destinations);
   }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepicker) {
+      this.#datepicker.destroy();
+      this.#datepicker = null;
+    }
+  }
+
+  reset(point){
+    this.updateElement(FormEditing.parsePointToState(point));
+  }
+
+  #typeChangeHandler = (evt) => {
+    if (!evt.target.classList.contains('event__type-input')) {
+      return;
+    }
+
+    const type = evt.target.value;
+
+    const offerGroup = this._state.offersByType.find(
+      (item) => item.type === type
+    );
+
+    this.updateElement({
+      point: {
+        ...this._state.point,
+        type,
+      },
+
+      offers: offerGroup?.offers ?? [],
+      selectedOffers: [],
+    });
+  };
+
+  #setDatepicker() {
+    this.#datepicker = flatpickr(
+      this.element.querySelector('[name="event-start-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.point.dateFrom,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+
+    flatpickr(
+      this.element.querySelector('[name="event-end-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.point.dateTo,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  }
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      point: {
+        ...this._state.point,
+        dateFrom: userDate,
+      },
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      point: {
+        ...this._state.point,
+        dateTo: userDate,
+      },
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    const destinationName = evt.target.value.trim();
+
+    const destination = this._state.destinations.find(
+      (item) => item.name === destinationName
+    );
+
+    if (!destination) {
+      return;
+    }
+
+    this.updateElement({
+      destination,
+    });
+  };
 
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
@@ -138,6 +237,17 @@ export default class FormEditing extends AbstractView{
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this._callback.formSubmit();
+    this._callback.formSubmit(FormEditing.parseStateToPoint(this._state));
   };
+
+  static parsePointToState(data){
+    return {...data };
+  }
+
+  static parseStateToPoint(state) {
+    return {
+      ...state.point,
+      offers: state.selectedOffers,
+    };
+  }
 }

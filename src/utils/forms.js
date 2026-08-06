@@ -1,15 +1,15 @@
 import { capitalize } from '../utils/utils.js';
 import { EVENT_TYPES } from '../const.js';
 
-function createEventItemTemplate(type){
+function createEventItemTemplate(type, currentType){
   return `<div class="event__type-item">
-    <input id="event-type-${type}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
+    <input id="event-type-${type}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}" ${type === currentType ? 'checked' : ''}>
     <label class="event__type-label  event__type-label--${type}" for="event-type-${type}">${capitalize(type)}</label>
   </div>`;
 }
 
-export function createEventTypeListTemplate() {
-  return EVENT_TYPES.map((type) => createEventItemTemplate(type)).join('');
+export function createEventTypeListTemplate(currentType) {
+  return EVENT_TYPES.map((type) => createEventItemTemplate(type, currentType)).join('');
 }
 
 function createOfferItemTemplate(offer){
@@ -24,7 +24,17 @@ function createOfferItemTemplate(offer){
 }
 
 export function createOffersTemplate(offers){
-  return offers.map((offer) => createOfferItemTemplate(offer)).join('');
+  if(!offers){
+    return '';
+  }
+
+  return `<section class="event__section  event__section--offers">
+    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+    <div class="event__available-offers">
+      ${offers.map((offer) => createOfferItemTemplate(offer)).join('')}
+    </div>
+  </section>`;
 }
 
 function createDestinationOptionTemplate(destination) {
@@ -50,20 +60,38 @@ export function createDestinationTemplate(destination) {
     return '';
   }
 
+  const hasDescription = destination.description;
+  const hasPictures = destination.pictures && destination.pictures.length;
+
+  if (!hasDescription && !hasPictures) {
+    return '';
+  }
+
   let pictures = '';
 
-  if (!destination.pictures){
-    pictures = '';
-  } else {
-    pictures = `<div class="event__photos-container">
+  if (hasPictures) {
+    pictures = `
+      <div class="event__photos-container">
         <div class="event__photos-tape">
           ${createPicturesTemplate(destination.pictures)}
         </div>
-      </div>`;
+      </div>
+    `;
   }
-  return `<p class="event__destination-description">
-        ${destination.description}
-      </p>
+
+  return `
+    <section class="event__section event__section--destination">
+      <h3 class="event__section-title event__section-title--destination">
+        Destination
+      </h3>
+
+      ${hasDescription ? `
+        <p class="event__destination-description">
+          ${destination.description}
+        </p>
+      ` : ''}
+
       ${pictures}
-    </section>`;
+    </section>
+  `;
 }

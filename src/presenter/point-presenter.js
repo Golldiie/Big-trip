@@ -84,6 +84,7 @@ export default class PointPresenter {
       point,
       destination: this.#tripModel.getDestinationById(point.destination),
       offers: this.#tripModel.getOfferByType(point.type).offers,
+      offersByType: this.#tripModel.getOffers(),
       selectedOffers: point.offers,
       destinations: this.#tripModel.getDestinations(),
     };
@@ -91,6 +92,7 @@ export default class PointPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
+      this.#formEditingComponent.reset(this.#point);
       this.#replaceFormToPoint();
     }
   }
@@ -112,6 +114,7 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
+      this.#formEditingComponent.reset(this.#point);
       this.#replaceFormToPoint();
     }
   };
