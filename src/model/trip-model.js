@@ -1,15 +1,19 @@
+import Observable from '../framework/observable.js';
 import { getRandomPoint } from '../mocks/points.js';
 import { mockOffers } from '../mocks/offers.js';
 import { mockDestinations } from '../mocks/destinations.js';
 
 const POINT_COUNT = 4;
 
-export default class TripModel {
-  points = Array.from({length: POINT_COUNT}, getRandomPoint);
+export default class TripModel extends Observable {
+  #points = Array.from({length: POINT_COUNT}, getRandomPoint);
   offers = mockOffers;
   destinations = mockDestinations;
 
-  getPoints = () => this.points;
+  get points() {
+    return this.#points;
+  }
+
   getOffers = () => this.offers;
   getDestinations = () => this.destinations;
 
@@ -29,7 +33,7 @@ export default class TripModel {
   }
 
   updatePoint(updatedPoint) {
-    const index = this.points.findIndex(
+    const index = this.#points.findIndex(
       (point) => point.id === updatedPoint.id
     );
 
@@ -37,6 +41,6 @@ export default class TripModel {
       return;
     }
 
-    this.points[index] = updatedPoint;
+    this.#points[index] = updatedPoint;
   }
 }

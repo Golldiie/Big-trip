@@ -19,6 +19,10 @@ export default class MainPresenter {
     this.tripModel = tripModel;
   }
 
+  get points(){
+    return this.tripModel.points;
+  }
+
   init() {
     this.#points = [...this.tripModel.getPoints()].sort(sortByDate);
     this.#renderFilter();
