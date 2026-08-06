@@ -1,10 +1,10 @@
-import { render } from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 import Sort from '../view/sort.js';
-import Filter from '../view/filter.js';
+import { filter } from '../utils/filters.js';
 import { DEFAULT_SORT, MessageBoard } from '../const.js';
-import { generateFilters } from '../mocks/filters.js';
 import ListMessage from '../view/list-message.js';
 import PointPresenter from './point-presenter.js';
+import FilterPresenter from './filter-presenter.js';
 import { sortByDate, sortByPrice, sortByTime } from '../utils/utils.js';
 
 export default class MainPresenter {
@@ -12,24 +12,29 @@ export default class MainPresenter {
   #sortComponent = null;
   #currentSortType = DEFAULT_SORT;
 
-  constructor({ filtersContainer, eventsContainer, tripModel }) {
+  constructor({ filtersContainer, eventsContainer, tripModel, filterModel, }) {
     this.filtersContainer = filtersContainer;
     this.eventsContainer = eventsContainer;
     this.tripModel = tripModel;
+    this.filterModel = filterModel;
+
+    this.filterModel.addObserver(this.#handleModelEvent);
   }
 
   get points() {
-    const points = [...this.tripModel.points];
+    const filterType = this.filterModel.filter;
+
+    const filteredPoints = filter[filterType](this.tripModel.points);
 
     switch (this.#currentSortType) {
       case 'price':
-        return points.sort(sortByPrice);
+        return [...filteredPoints].sort(sortByPrice);
 
       case 'time':
-        return points.sort(sortByTime);
+        return [...filteredPoints].sort(sortByTime);
 
       default:
-        return points.sort(sortByDate);
+        return [...filteredPoints].sort(sortByDate);
     }
   }
 
@@ -47,16 +52,29 @@ export default class MainPresenter {
   }
 
   #renderFilter() {
-    const filters = generateFilters(this.points);
-    render(new Filter({ filters }), this.filtersContainer);
+    const filterPresenter = new FilterPresenter({
+      filterContainer: this.filtersContainer,
+      filterModel: this.filterModel,
+      tripModel: this.tripModel,
+    });
+
+    filterPresenter.init();
   }
 
   #renderSort() {
-    this.#sortComponent = new Sort(DEFAULT_SORT, {
+    const prevSortComponent = this.#sortComponent;
+
+    this.#sortComponent = new Sort(this.#currentSortType, {
       onSortTypeChange: this.#handleSortTypeChange,
     });
 
-    render(this.#sortComponent, this.eventsContainer);
+    if (prevSortComponent === null) {
+      render(this.#sortComponent, this.eventsContainer);
+      return;
+    }
+
+    replace(this.#sortComponent, prevSortComponent);
+    remove(prevSortComponent);
   }
 
   #handleSortTypeChange = (sortType) => {
@@ -132,5 +150,18 @@ export default class MainPresenter {
         presenter.resetView();
       }
     });
+  };
+
+  #handleModelEvent = () => {
+    this.#currentSortType = DEFAULT_SORT;
+
+    this.#renderSort();
+
+    this.#clearPoints();
+
+    const pointsListElement =
+    this.eventsContainer.querySelector('.trip-events__list');
+
+    this.#renderRoutePoints(pointsListElement);
   };
 }

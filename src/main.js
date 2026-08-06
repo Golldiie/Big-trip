@@ -1,7 +1,7 @@
 import TripModel from './model/trip-model.js';
 import FilterModel from './model/filter-model.js';
 import MainPresenter from './presenter/main-presenter.js';
-import FilterModel from './model/filter-model.js';
+
 
 const filtersContainer = document.querySelector('.trip-controls__filters');
 const eventsContainer = document.querySelector('.trip-events');
@@ -13,6 +13,7 @@ const presenter = new MainPresenter({
   filtersContainer,
   eventsContainer,
   tripModel,
+  filterModel,
 });
 
 presenter.init();

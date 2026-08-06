@@ -10,6 +10,12 @@ export const EVENT_TYPES = [
   'restaurant',
 ];
 
+export const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
 export const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
