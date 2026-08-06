@@ -24,10 +24,18 @@ function createOfferItemTemplate(offer, selectedOffers) {
   `;
 }
 
-function createOffersTemplate(offers, selectedOffers) {
-  return offers
-    .map((offer) => createOfferItemTemplate(offer, selectedOffers))
-    .join('');
+function createOffersTemplate(offers, selectedOffers){
+  if(!offers.length){
+    return '';
+  }
+
+  return `<section class="event__section  event__section--offers">
+    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+    <div class="event__available-offers">
+      ${offers.map((offer) => createOfferItemTemplate(offer, selectedOffers)).join('')}
+    </div>
+  </section>`;
 }
 
 function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
@@ -81,18 +89,9 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
                   </button>
                 </header>
                 <section class="event__details">
-                  <section class="event__section  event__section--offers">
-                    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+                  ${createOffersTemplate(offers, selectedOffers)}
 
-                    <div class="event__available-offers">
-                      ${createOffersTemplate(offers, selectedOffers)}
-                    </div>
-                  </section>
-
-                  <section class="event__section  event__section--destination">
-                    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                    ${createDestinationTemplate(destination)}
-                  </section>
+                  ${createDestinationTemplate(destination)}
                 </section>
               </form>`;
 }
@@ -114,7 +113,6 @@ export default class FormEditing extends AbstractStatefulView{
 
     this._callback.formSubmit = onFormSubmit;
     this._callback.rollupClick = onRollupClick;
-
     this._restoreHandlers();
   }
 
