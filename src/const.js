@@ -37,3 +37,9 @@ export const MessageBoard = {
   PRESENT: 'There are no present events now',
   PAST: 'There are no past events now'
 };
+
+export const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};

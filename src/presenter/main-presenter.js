@@ -1,7 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import Sort from '../view/sort.js';
 import { filter } from '../utils/filters.js';
-import { DEFAULT_SORT, MessageBoard } from '../const.js';
+import { DEFAULT_SORT, MessageBoard, UserAction } from '../const.js';
 import ListMessage from '../view/list-message.js';
 import PointPresenter from './point-presenter.js';
 import FilterPresenter from './filter-presenter.js';
@@ -152,12 +152,20 @@ export default class MainPresenter {
     });
   }
 
-  #handlePointChange = (updatedPoint) => {
-    this.tripModel.updatePoint(updatedPoint);
+  #handlePointChange = (actionType, updateType, update) => {
+    switch (actionType) {
+      case UserAction.UPDATE_POINT:
+        this.tripModel.updatePoint(updateType, update);
+        break;
 
-    this.#pointPresenters
-      .get(updatedPoint.id)
-      .update(updatedPoint);
+      case UserAction.DELETE_POINT:
+        this.tripModel.deletePoint(updateType, update);
+        break;
+
+      case UserAction.ADD_POINT:
+        this.tripModel.addPoint(updateType, update);
+        break;
+    }
   };
 
   #handleModeChange = (currentPresenter) => {

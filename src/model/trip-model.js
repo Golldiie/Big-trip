@@ -36,7 +36,7 @@ export default class TripModel extends Observable {
     return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
   }
 
-  updatePoint(updatedPoint) {
+  updatePoint(updateType, updatedPoint) {
     const index = this.#points.findIndex(
       (point) => point.id === updatedPoint.id
     );
@@ -46,5 +46,20 @@ export default class TripModel extends Observable {
     }
 
     this.#points[index] = updatedPoint;
+    this._notify(updateType, updatedPoint);
+  }
+
+  deletePoint(updateType, pointToDelete) {
+    this.points = this.points.filter(
+      (point) => point.id !== pointToDelete.id
+    );
+
+    this._notify(updateType);
+  }
+
+  addPoint(updateType, point) {
+    this.points = [point, ...this.points];
+
+    this._notify(updateType);
   }
 }
