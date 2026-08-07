@@ -94,11 +94,21 @@ export default class MainPresenter {
     const points = this.points;
 
     if (points.length === 0) {
+      const filterType = this.filterModel.filter;
+
+      const messageByFilter = {
+        everything: MessageBoard.EMPTY_LIST,
+        future: MessageBoard.FUTURE,
+        present: MessageBoard.PRESENT,
+        past: MessageBoard.PAST,
+      };
+
       render(
-        new ListMessage({ message: MessageBoard.EMPTY_LIST }),
+        new ListMessage({
+          message: messageByFilter[filterType],
+        }),
         this.eventsContainer
       );
-      return null;
     }
 
     const pointsListElement = document.createElement('ul');
@@ -109,16 +119,22 @@ export default class MainPresenter {
     return pointsListElement;
   }
 
-  #clearPoints(){
+  #clearPoints() {
     this.#pointPresenters.forEach((presenter) => {
       presenter.destroy();
     });
 
     this.#pointPresenters.clear();
 
-    this.eventsContainer
-      .querySelector('.trip-events__list')
-      .innerHTML = '';
+    const list = this.eventsContainer.querySelector('.trip-events__list');
+    if (list) {
+      list.remove();
+    }
+
+    const message = this.eventsContainer.querySelector('.trip-events__msg');
+    if (message) {
+      message.remove();
+    }
   }
 
   #renderRoutePoints(container, points = this.points) {
@@ -159,8 +175,11 @@ export default class MainPresenter {
 
     this.#clearPoints();
 
-    const pointsListElement =
-    this.eventsContainer.querySelector('.trip-events__list');
+    const pointsListElement = this.#createPointsList();
+
+    if (!pointsListElement) {
+      return;
+    }
 
     this.#renderRoutePoints(pointsListElement);
   };
