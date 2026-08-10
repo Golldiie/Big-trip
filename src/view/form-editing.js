@@ -1,42 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { capitalize, humanizeFormDate } from '../utils/utils.js';
-import { createEventTypeListTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
+import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-
-function createOfferItemTemplate(offer, selectedOffers) {
-  const isChecked = selectedOffers.includes(offer.id);
-
-  return `
-    <div class="event__offer-selector">
-      <input
-        class="event__offer-checkbox visually-hidden"
-        id="event-offer-${offer.id}"
-        type="checkbox"
-        ${isChecked ? 'checked' : ''}
-      >
-      <label class="event__offer-label" for="event-offer-${offer.id}">
-        <span class="event__offer-title">${offer.title}</span>
-        +€&nbsp;
-        <span class="event__offer-price">${offer.price}</span>
-      </label>
-    </div>
-  `;
-}
-
-function createOffersTemplate(offers, selectedOffers){
-  if(!offers.length){
-    return '';
-  }
-
-  return `<section class="event__section  event__section--offers">
-    <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
-    <div class="event__available-offers">
-      ${offers.map((offer) => createOfferItemTemplate(offer, selectedOffers)).join('')}
-    </div>
-  </section>`;
-}
 
 function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
   return `<form class="event event--edit" action="#" method="post">

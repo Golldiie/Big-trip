@@ -1,8 +1,11 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 
-function createFormCreationTemplate(offers, destinations){
+function createFormCreationTemplate(type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice){
   return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
   <header class="event__header">
@@ -16,14 +19,14 @@ function createFormCreationTemplate(offers, destinations){
     <div class="event__type-list">
       <fieldset class="event__type-group">
         <legend class="visually-hidden">Event type</legend>
-          ${createEventTypeListTemplate()}
+          ${createEventTypeListTemplate(type)}
       </fieldset>
     </div>
     </div>
 
   <div class="event__field-group  event__field-group--destination">
-    <label class="event__label  event__type-output" for="event-destination-1">Flight</label>
-    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="Geneva" list="destination-list-1">
+    <label class="event__label  event__type-output" for="event-destination-1">${capitalize(type)}</label>
+    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
     <datalist id="destination-list-1">
       ${createDestinationsListTemplate(destinations)}
     </datalist>
@@ -31,16 +34,16 @@ function createFormCreationTemplate(offers, destinations){
 
   <div class="event__field-group  event__field-group--time">
     <label class="visually-hidden" for="event-start-time-1">From</label>
-    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="19/03/19 00:00">&mdash;
+    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeFormDate(dateFrom)}">&mdash;
     <label class="visually-hidden" for="event-end-time-1">To</label>
-    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="19/03/19 00:00">
+    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeFormDate(dateTo)}">
   </div>
 
   <div class="event__field-group  event__field-group--price">
     <label class="event__label" for="event-price-1">
       <span class="visually-hidden">Price</span>&euro;
     </label>
-    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="">
+    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
   </div>
 
   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -48,31 +51,185 @@ function createFormCreationTemplate(offers, destinations){
   </header>
 
   <section class="event__details">
-    <section class="event__section  event__section--offers">
-      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+    ${createOffersTemplate(offers, selectedOffers)}
 
-      <div class="event__available-offers">
-      ${createOffersTemplate(offers)}
-      </div>
-    </section>
-
-    ${createDestinationTemplate()}
+    ${createDestinationTemplate(destination)}
   </section>
   </form>
   </li>`;
 }
 
-export default class FormCreation extends AbstractView{
-  #offers = null;
-  #destinations = null;
+export default class FormCreation extends AbstractStatefulView {
+  #datepicker = null;
 
-  constructor({offers, destinations}) {
+  constructor({offersByType, destinations, onFormSubmit, onCancel}) {
     super();
-    this.#offers = offers;
-    this.#destinations = destinations;
+
+    const type = offersByType[0].type;
+    const destination = destinations[0];
+
+    this._setState({
+      type,
+      destination,
+      offersByType,
+      offers: offersByType[0].offers,
+      selectedOffers: [],
+      destinations,
+      dateFrom: new Date(),
+      dateTo: new Date(),
+      basePrice: 0,
+    });
+
+    this._callback.formSubmit = onFormSubmit;
+    this._callback.cancel = onCancel;
+
+    this._restoreHandlers();
   }
 
-  get template(){
-    return createFormCreationTemplate(this.#offers, this.#destinations);
+  get template() {
+    return createFormCreationTemplate(
+      this._state.type,
+      this._state.destination,
+      this._state.offers,
+      this._state.selectedOffers,
+      this._state.destinations,
+      this._state.dateFrom,
+      this._state.dateTo,
+      this._state.basePrice
+    );
   }
+
+  _restoreHandlers = () => {
+    this.element
+      .querySelector('.event__type-list')
+      .addEventListener('change', this.#typeChangeHandler);
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+    this.element
+      .querySelector('[name="event-price"]')
+      .addEventListener('input', this.#priceChangeHandler);
+    this.element
+      .addEventListener('submit', this.#formSubmitHandler);
+    this.element
+      .querySelector('.event__reset-btn')
+      .addEventListener('click', this.#cancelClickHandler);
+
+    this.element
+      .querySelector('.event__available-offers')
+      ?.addEventListener('change', this.#offerChangeHandler);
+    this.#setDatepicker();
+  };
+
+  #setDatepicker() {
+    this.#datepicker = flatpickr(
+      this.element.querySelector('[name="event-start-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.dateFrom,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+
+    flatpickr(
+      this.element.querySelector('[name="event-end-time"]'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.dateTo,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  }
+
+  #typeChangeHandler = (evt) => {
+    if (!evt.target.classList.contains('event__type-input')) {
+      return;
+    }
+
+    const type = evt.target.value;
+
+    const offerGroup = this._state.offersByType.find(
+      (item) => item.type === type
+    );
+
+    this.updateElement({
+      type,
+      offers: offerGroup?.offers ?? [],
+      selectedOffers: [],
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    this._setState({
+      basePrice: Number(evt.target.value),
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    const destinationName = evt.target.value.trim();
+
+    const destination = this._state.destinations.find(
+      (item) => item.name === destinationName
+    );
+
+    if (!destination) {
+      return;
+    }
+
+    this.updateElement({
+      destination,
+    });
+  };
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    if (!evt.target.classList.contains('event__offer-checkbox')) {
+      return;
+    }
+
+    const offerId = evt.target.value;
+
+    const selectedOffers = evt.target.checked
+      ? [...this._state.selectedOffers, offerId]
+      : this._state.selectedOffers.filter((id) => id !== offerId);
+
+    this.updateElement({
+      selectedOffers,
+    });
+  };
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+
+    const point = {
+      id: crypto.randomUUID(),
+      type: this._state.type,
+      destination: this._state.destination.id,
+      dateFrom: this._state.dateFrom,
+      dateTo: this._state.dateTo,
+      basePrice: this._state.basePrice,
+      offers: this._state.selectedOffers,
+      isFavorite: false,
+    };
+
+    this._callback.formSubmit(point);
+  };
+
+  #cancelClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.cancel();
+  };
 }

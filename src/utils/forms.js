@@ -12,19 +12,28 @@ export function createEventTypeListTemplate(currentType) {
   return EVENT_TYPES.map((type) => createEventItemTemplate(type, currentType)).join('');
 }
 
-function createOfferItemTemplate(offer){
-  return `<div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer-${offer.id}">
-    <label class="event__offer-label" for="event-offer-${offer.id}">
-      <span class="event__offer-title">${offer.title}</span>
-        &plus;&euro;&nbsp;
-      <span class="event__offer-price">${offer.price}</span>
-    </label>
-  </div>`;
+function createOfferItemTemplate(offer, selectedOffers = []) {
+  const isChecked = selectedOffers.includes(offer.id);
+
+  return `
+    <div class="event__offer-selector">
+      <input
+        class="event__offer-checkbox visually-hidden"
+        id="event-offer-${offer.id}"
+        type="checkbox"
+        ${isChecked ? 'checked' : ''}
+      >
+      <label class="event__offer-label" for="event-offer-${offer.id}">
+        <span class="event__offer-title">${offer.title}</span>
+        +€&nbsp;
+        <span class="event__offer-price">${offer.price}</span>
+      </label>
+    </div>
+  `;
 }
 
-export function createOffersTemplate(offers){
-  if(!offers){
+export function createOffersTemplate(offers, selectedOffers = []){
+  if(!offers || !offers.length){
     return '';
   }
 
@@ -32,7 +41,7 @@ export function createOffersTemplate(offers){
     <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
     <div class="event__available-offers">
-      ${offers.map((offer) => createOfferItemTemplate(offer)).join('')}
+      ${offers.map((offer) => createOfferItemTemplate(offer, selectedOffers)).join('')}
     </div>
   </section>`;
 }
