@@ -19,6 +19,7 @@ export default class MainPresenter {
     this.filterModel = filterModel;
 
     this.filterModel.addObserver(this.#handleModelEvent);
+    this.tripModel.addObserver(this.#handleModelEvent);
   }
 
   get points() {
@@ -86,7 +87,12 @@ export default class MainPresenter {
 
     this.#clearPoints();
 
-    const pointsListElement = this.eventsContainer.querySelector('.trip-events__list');
+    const pointsListElement = this.#createPointsList();
+
+    if (!pointsListElement) {
+      return;
+    }
+
     this.#renderRoutePoints(pointsListElement, this.points);
   };
 
@@ -109,6 +115,8 @@ export default class MainPresenter {
         }),
         this.eventsContainer
       );
+
+      return null;
     }
 
     const pointsListElement = document.createElement('ul');

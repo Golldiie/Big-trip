@@ -15,7 +15,7 @@ export default class TripModel extends Observable {
   }
 
   setPoints(points){
-    this.points = points;
+    this.#points = points;
   }
 
   getOffers = () => this.offers;
@@ -50,7 +50,7 @@ export default class TripModel extends Observable {
   }
 
   deletePoint(updateType, pointToDelete) {
-    this.points = this.points.filter(
+    this.#points = this.#points.filter(
       (point) => point.id !== pointToDelete.id
     );
 
@@ -58,7 +58,7 @@ export default class TripModel extends Observable {
   }
 
   addPoint(updateType, point) {
-    this.points = [point, ...this.points];
+    this.#points = [point, ...this.#points];
 
     this._notify(updateType);
   }

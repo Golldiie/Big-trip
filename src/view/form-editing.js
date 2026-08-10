@@ -99,7 +99,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
 export default class FormEditing extends AbstractStatefulView{
   #datepicker = null;
 
-  constructor({point, destination, offers, offersByType, selectedOffers, destinations, onFormSubmit, onRollupClick}){
+  constructor({point, destination, offers, offersByType, selectedOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick}){
     super();
     this._setState(FormEditing.parsePointToState({
       point,
@@ -113,6 +113,7 @@ export default class FormEditing extends AbstractStatefulView{
 
     this._callback.formSubmit = onFormSubmit;
     this._callback.rollupClick = onRollupClick;
+    this._callback.deleteClick = onDeleteClick;
     this._restoreHandlers();
   }
 
@@ -131,6 +132,11 @@ export default class FormEditing extends AbstractStatefulView{
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.element
+      .querySelector('.event__reset-btn')
+      .addEventListener('click', this.#deleteClickHandler);
+
 
     this.#setDatepicker();
   };
@@ -238,6 +244,14 @@ export default class FormEditing extends AbstractStatefulView{
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this._callback.formSubmit(FormEditing.parseStateToPoint(this._state));
+  };
+
+  #deleteClickHandler = (evt) => {
+    evt.preventDefault();
+
+    this._callback.deleteClick(
+      FormEditing.parseStateToPoint(this._state)
+    );
   };
 
   static parsePointToState(data){
