@@ -1,15 +1,23 @@
+import Observable from '../framework/observable.js';
 import { getRandomPoint } from '../mocks/points.js';
 import { mockOffers } from '../mocks/offers.js';
 import { mockDestinations } from '../mocks/destinations.js';
 
 const POINT_COUNT = 4;
 
-export default class TripModel {
-  points = Array.from({length: POINT_COUNT}, getRandomPoint);
+export default class TripModel extends Observable {
+  #points = Array.from({length: POINT_COUNT}, getRandomPoint);
   offers = mockOffers;
   destinations = mockDestinations;
 
-  getPoints = () => this.points;
+  get points() {
+    return this.#points;
+  }
+
+  setPoints(points){
+    this.#points = points;
+  }
+
   getOffers = () => this.offers;
   getDestinations = () => this.destinations;
 
@@ -28,15 +36,30 @@ export default class TripModel {
     return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
   }
 
-  updatePoint(updatedPoint) {
-    const index = this.points.findIndex(
+  updatePoint(updateType, updatedPoint) {
+    const index = this.#points.findIndex(
       (point) => point.id === updatedPoint.id
     );
 
     if (index === -1) {
-      return;
+      throw new Error('Can\'t update unexisting task');
     }
 
-    this.points[index] = updatedPoint;
+    this.#points[index] = updatedPoint;
+    this._notify(updateType, updatedPoint);
+  }
+
+  deletePoint(updateType, pointToDelete) {
+    this.#points = this.#points.filter(
+      (point) => point.id !== pointToDelete.id
+    );
+
+    this._notify(updateType);
+  }
+
+  addPoint(updateType, point) {
+    this.#points = [point, ...this.#points];
+
+    this._notify(updateType);
   }
 }

@@ -1,6 +1,7 @@
 import {render, replace, remove} from '../framework/render.js';
 import RoutePoint from '../view/route-point.js';
 import FormEditing from '../view/form-editing.js';
+import { UserAction, UpdateType } from '../const.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -68,6 +69,7 @@ export default class PointPresenter {
       ...this.#prepareEditingPoint(point),
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
+      onDeleteClick: this.#handleDeleteClick,
     });
   }
 
@@ -92,7 +94,10 @@ export default class PointPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#formEditingComponent.reset(this.#point);
+      this.#formEditingComponent.reset(
+        this.#prepareEditingPoint(this.#point)
+      );
+
       this.#replaceFormToPoint();
     }
   }
@@ -120,7 +125,11 @@ export default class PointPresenter {
   };
 
   #handleFavouriteClick = (updatedPoint) => {
-    this.#handleDataChange(updatedPoint);
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      updatedPoint,
+    );
   };
 
   #handleEditClick = () => {
@@ -128,8 +137,21 @@ export default class PointPresenter {
   };
 
   #handleFormSubmit = (point) => {
-    this.#handleDataChange(point);
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
+
     this.#replaceFormToPoint();
+  };
+
+  #handleDeleteClick = (point) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
   };
 
   #handleRollupClick = () => {
