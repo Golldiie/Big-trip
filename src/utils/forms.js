@@ -21,6 +21,7 @@ function createOfferItemTemplate(offer, selectedOffers = []) {
         class="event__offer-checkbox visually-hidden"
         id="event-offer-${offer.id}"
         type="checkbox"
+        value="${offer.id}"
         ${isChecked ? 'checked' : ''}
       >
       <label class="event__offer-label" for="event-offer-${offer.id}">

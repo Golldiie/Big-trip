@@ -3,6 +3,7 @@ import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import he from 'he';
 
 function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
   return `<form class="event event--edit" action="#" method="post">
@@ -26,7 +27,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
         <label class="event__label  event__type-output" for="event-destination-1">
                       ${capitalize(point.type)}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${destination.name}" list="destination-list-${point.id}">
+                    <input class="event__input  event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${he.encode(destination.name)}" list="destination-list-${point.id}">
                     <datalist id="destination-list-${point.id}">
                       ${createDestinationsListTemplate(destinations)}
                     </datalist>
@@ -99,6 +100,13 @@ export default class FormEditing extends AbstractStatefulView{
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
 
+    this.element
+      .querySelector('[name="event-price"]')
+      .addEventListener('change', this.#priceChangeHandler);
+
+    this.element
+      .querySelector('.event__available-offers')
+      ?.addEventListener('change', this.#offerChangeHandler);
     this.element
       .querySelector('.event__reset-btn')
       .addEventListener('click', this.#deleteClickHandler);
@@ -186,6 +194,15 @@ export default class FormEditing extends AbstractStatefulView{
     });
   };
 
+  #priceChangeHandler = (evt) => {
+    this._setState({
+      point: {
+        ...this._state.point,
+        basePrice: Number(evt.target.value),
+      },
+    });
+  };
+
   #destinationChangeHandler = (evt) => {
     const destinationName = evt.target.value.trim();
 
@@ -199,6 +216,22 @@ export default class FormEditing extends AbstractStatefulView{
 
     this.updateElement({
       destination,
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    if (!evt.target.classList.contains('event__offer-checkbox')) {
+      return;
+    }
+
+    const offerId = evt.target.value;
+
+    const selectedOffers = evt.target.checked
+      ? [...this._state.selectedOffers, offerId]
+      : this._state.selectedOffers.filter((id) => id !== offerId);
+
+    this.updateElement({
+      selectedOffers,
     });
   };
 
@@ -227,6 +260,7 @@ export default class FormEditing extends AbstractStatefulView{
   static parseStateToPoint(state) {
     return {
       ...state.point,
+      destination: state.destination.id,
       offers: state.selectedOffers,
     };
   }

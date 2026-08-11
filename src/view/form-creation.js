@@ -3,6 +3,7 @@ import { capitalize, humanizeFormDate } from '../utils/utils.js';
 import { createEventTypeListTemplate, createOffersTemplate, createDestinationsListTemplate, createDestinationTemplate } from '../utils/forms.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import he from 'he';
 
 
 function createFormCreationTemplate(type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice){
@@ -12,7 +13,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
     <div class="event__type-wrapper">
       <label class="event__type  event__type-btn" for="event-type-toggle-1">
         <span class="visually-hidden">Choose event type</span>
-        <img class="event__type-icon" width="17" height="17" src="img/icons/flight.png" alt="Event type icon">
+        <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
       </label>
     <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -26,7 +27,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 
   <div class="event__field-group  event__field-group--destination">
     <label class="event__label  event__type-output" for="event-destination-1">${capitalize(type)}</label>
-    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
+    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destination.name)}" list="destination-list-1">
     <datalist id="destination-list-1">
       ${createDestinationsListTemplate(destinations)}
     </datalist>
@@ -60,7 +61,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 }
 
 export default class FormCreation extends AbstractStatefulView {
-  #datepicker = null;
+  #datepicker = [];
 
   constructor({offersByType, destinations, onFormSubmit, onCancel}) {
     super();
@@ -121,26 +122,35 @@ export default class FormCreation extends AbstractStatefulView {
     this.#setDatepicker();
   };
 
-  #setDatepicker() {
-    this.#datepicker = flatpickr(
-      this.element.querySelector('[name="event-start-time"]'),
-      {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        defaultDate: this._state.dateFrom,
-        onChange: this.#dateFromChangeHandler,
-      }
-    );
+  removeElement() {
+    super.removeElement();
 
-    flatpickr(
-      this.element.querySelector('[name="event-end-time"]'),
-      {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        defaultDate: this._state.dateTo,
-        onChange: this.#dateToChangeHandler,
-      }
-    );
+    this.#datepicker.forEach((datepicker) => datepicker.destroy());
+    this.#datepicker = [];
+  }
+
+  #setDatepicker() {
+    this.#datepicker = [
+      flatpickr(
+        this.element.querySelector('[name="event-start-time"]'),
+        {
+          dateFormat: 'd/m/y H:i',
+          enableTime: true,
+          defaultDate: this._state.dateFrom,
+          onChange: this.#dateFromChangeHandler,
+        }
+      ),
+
+      flatpickr(
+        this.element.querySelector('[name="event-end-time"]'),
+        {
+          dateFormat: 'd/m/y H:i',
+          enableTime: true,
+          defaultDate: this._state.dateTo,
+          onChange: this.#dateToChangeHandler,
+        }
+      ),
+    ];
   }
 
   #typeChangeHandler = (evt) => {

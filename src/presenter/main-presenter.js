@@ -1,7 +1,9 @@
 import { render, replace, remove } from '../framework/render.js';
+import NewPointButton from '../view/new-point-button.js';
+import NewPointPresenter from './new-point-presenter.js';
 import Sort from '../view/sort.js';
 import { filter } from '../utils/filters.js';
-import { DEFAULT_SORT, MessageBoard, UserAction } from '../const.js';
+import { DEFAULT_SORT, MessageBoard, UserAction, UpdateType, FilterType } from '../const.js';
 import ListMessage from '../view/list-message.js';
 import PointPresenter from './point-presenter.js';
 import FilterPresenter from './filter-presenter.js';
@@ -11,12 +13,21 @@ export default class MainPresenter {
   #pointPresenters = new Map();
   #sortComponent = null;
   #currentSortType = DEFAULT_SORT;
+  #newPointButton = null;
+  #newPointPresenter = null;
 
-  constructor({ filtersContainer, eventsContainer, tripModel, filterModel, }) {
+  constructor({
+    filtersContainer,
+    eventsContainer,
+    tripModel,
+    filterModel,
+    newPointButtonContainer,
+  }) {
     this.filtersContainer = filtersContainer;
     this.eventsContainer = eventsContainer;
     this.tripModel = tripModel;
     this.filterModel = filterModel;
+    this.newPointButtonContainer = newPointButtonContainer;
 
     this.filterModel.addObserver(this.#handleModelEvent);
     this.tripModel.addObserver(this.#handleModelEvent);
@@ -40,6 +51,7 @@ export default class MainPresenter {
   }
 
   init() {
+    this.#renderNewPointButton();
     this.#renderFilter();
     this.#renderSort();
 
@@ -50,6 +62,14 @@ export default class MainPresenter {
     }
 
     this.#renderRoutePoints(pointsListElement);
+  }
+
+  #renderNewPointButton() {
+    this.#newPointButton = new NewPointButton({
+      onClick: this.#handleNewPointButtonClick,
+    });
+
+    render(this.#newPointButton, this.newPointButtonContainer);
   }
 
   #renderFilter() {
@@ -77,6 +97,49 @@ export default class MainPresenter {
     replace(this.#sortComponent, prevSortComponent);
     remove(prevSortComponent);
   }
+
+  #createNewPointPresenter() {
+    let pointsListElement = this.eventsContainer.querySelector('.trip-events__list');
+
+    if (!pointsListElement) {
+      this.#clearPoints();
+      pointsListElement = this.#createPointsList();
+    }
+
+    if (!pointsListElement) {
+      return;
+    }
+
+    this.#newPointPresenter = new NewPointPresenter({
+      pointListContainer: pointsListElement,
+      tripModel: this.tripModel,
+      onDataChange: this.#handlePointChange,
+      onDestroy: this.#handleNewPointDestroy,
+    });
+
+    this.#newPointPresenter.init();
+  }
+
+  #handleNewPointButtonClick = () => {
+    if (this.#newPointPresenter !== null) {
+      return;
+    }
+
+    this.#pointPresenters.forEach((presenter) => {
+      presenter.resetView();
+    });
+
+    this.filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+
+    this.#currentSortType = DEFAULT_SORT;
+    this.#renderSort();
+
+    this.#createNewPointPresenter();
+  };
+
+  #handleNewPointDestroy = () => {
+    this.#newPointPresenter = null;
+  };
 
   #handleSortTypeChange = (sortType) => {
     if (this.#currentSortType === sortType) {
