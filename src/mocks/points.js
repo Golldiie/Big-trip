@@ -153,6 +153,13 @@ const mockPoints = [
   }
 ];
 
-const getRandomPoint = () => getRandomArrayElement(mockPoints);
+const getRandomPoint = () => {
+  const point = getRandomArrayElement(mockPoints);
+
+  return {
+    ...point,
+    id: crypto.randomUUID(),
+  };
+};
 
 export { getRandomPoint };

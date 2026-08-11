@@ -27,7 +27,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 
   <div class="event__field-group  event__field-group--destination">
     <label class="event__label  event__type-output" for="event-destination-1">${capitalize(type)}</label>
-    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destination.name)}" list="destination-list-1">
+    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination ? he.encode(destination.name) : ''}" list="destination-list-1">
     <datalist id="destination-list-1">
       ${createDestinationsListTemplate(destinations)}
     </datalist>
@@ -35,9 +35,9 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 
   <div class="event__field-group  event__field-group--time">
     <label class="visually-hidden" for="event-start-time-1">From</label>
-    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeFormDate(dateFrom)}">&mdash;
+    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? humanizeFormDate(dateFrom) : ''}">&mdash;
     <label class="visually-hidden" for="event-end-time-1">To</label>
-    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeFormDate(dateTo)}">
+    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateFrom ? humanizeFormDate(dateTo) : ''}">
   </div>
 
   <div class="event__field-group  event__field-group--price">
@@ -66,18 +66,17 @@ export default class FormCreation extends AbstractStatefulView {
   constructor({offersByType, destinations, onFormSubmit, onCancel}) {
     super();
 
-    const type = offersByType[0].type;
-    const destination = destinations[0];
+    const type = offersByType[3].type;
 
     this._setState({
       type,
-      destination,
+      destination: null,
       offersByType,
-      offers: offersByType[0].offers,
+      offers: offersByType.find((item) => item.type === type)?.offers ?? [],
       selectedOffers: [],
       destinations,
-      dateFrom: new Date(),
-      dateTo: new Date(),
+      dateFrom: null,
+      dateTo: null,
       basePrice: 0,
     });
 
@@ -172,8 +171,11 @@ export default class FormCreation extends AbstractStatefulView {
   };
 
   #priceChangeHandler = (evt) => {
+    const value = evt.target.value.replace(/\D/g, '');
+
+    evt.target.value = value;
     this._setState({
-      basePrice: Number(evt.target.value),
+      basePrice: Number(value),
     });
   };
 
@@ -184,12 +186,8 @@ export default class FormCreation extends AbstractStatefulView {
       (item) => item.name === destinationName
     );
 
-    if (!destination) {
-      return;
-    }
-
     this.updateElement({
-      destination,
+      destination: destination ?? null,
     });
   };
 
@@ -223,6 +221,10 @@ export default class FormCreation extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+
+    if (!this._state.destination) {
+      return;
+    }
 
     const point = {
       id: crypto.randomUUID(),

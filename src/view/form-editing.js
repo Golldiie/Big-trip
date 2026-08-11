@@ -195,10 +195,14 @@ export default class FormEditing extends AbstractStatefulView{
   };
 
   #priceChangeHandler = (evt) => {
+    const value = evt.target.value.replace(/\D/g, '');
+
+    evt.target.value = value;
+
     this._setState({
       point: {
         ...this._state.point,
-        basePrice: Number(evt.target.value),
+        basePrice: Number(value),
       },
     });
   };
