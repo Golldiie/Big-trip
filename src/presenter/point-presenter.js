@@ -136,11 +136,26 @@ export default class PointPresenter {
     this.#replacePointToForm();
   };
 
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#formEditingComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#formEditingComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
   #handleFormSubmit = async (point) => {
-    this.#formEditingComponent.updateElement({
-      isDisabled: true,
-      isSaving: true,
-    });
+    this.setSaving();
 
     try {
       await this.#handleDataChange(
@@ -159,10 +174,7 @@ export default class PointPresenter {
   };
 
   #handleDeleteClick = async (point) => {
-    this.#formEditingComponent.updateElement({
-      isDisabled: true,
-      isDeleting: true,
-    });
+    this.setDeleting();
 
     try {
       await this.#handleDataChange(

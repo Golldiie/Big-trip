@@ -231,13 +231,16 @@ export default class MainPresenter {
   #handlePointChange = (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
+        this.#pointPresenters.get(update.id).setSaving();
         return this.tripModel.updatePoint(updateType, update);
 
-      case UserAction.DELETE_POINT:
-        return this.tripModel.deletePoint(updateType, update);
-
       case UserAction.ADD_POINT:
+        this.#newPointPresenter.setSaving();
         return this.tripModel.addPoint(updateType, update);
+
+      case UserAction.DELETE_POINT:
+        this.#pointPresenters.get(update.id).setDeleting();
+        return this.tripModel.deletePoint(updateType, update);
     }
   };
 

@@ -58,7 +58,7 @@ function createFormEditingTemplate(data){
                   </button>
                 </header>
                 <section class="event__details">
-                  ${createOffersTemplate(offers, selectedOffers)}
+                  ${createOffersTemplate(offers, selectedOffers, isDisabled)}
 
                   ${createDestinationTemplate(destination)}
                 </section>

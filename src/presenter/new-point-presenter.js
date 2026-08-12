@@ -56,6 +56,13 @@ export default class NewPointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
+  setSaving() {
+    this.#formCreationComponent.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
   #handleFormSubmit = async (point) => {
     try {
       await this.#handleDataChange(

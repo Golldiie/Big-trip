@@ -7,7 +7,7 @@ import he from 'he';
 
 
 function createFormCreationTemplate(data){
-  const {type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice, isSaving} = data;
+  const {type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice, isSaving, isDisabled} = data;
   return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
   <header class="event__header">
@@ -53,7 +53,7 @@ function createFormCreationTemplate(data){
   </header>
 
   <section class="event__details">
-    ${createOffersTemplate(offers, selectedOffers)}
+    ${createOffersTemplate(offers, selectedOffers, isDisabled)}
 
     ${createDestinationTemplate(destination)}
   </section>
