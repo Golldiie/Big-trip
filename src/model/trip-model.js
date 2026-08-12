@@ -85,18 +85,40 @@ export default class TripModel extends Observable {
     }
   }
 
-  deletePoint(updateType, pointToDelete) {
-    this.#points = this.#points.filter(
-      (point) => point.id !== pointToDelete.id
-    );
+  async addPoint(updateType, point) {
+    try {
+      const response = await this.#pointsApiService.addPoint(point);
+      const newPoint = this.#adaptToClient(response);
 
-    this._notify(updateType);
+      this.#points = [newPoint, ...this.#points];
+
+      this._notify(updateType, newPoint);
+    } catch(err){
+      throw new Error('Can\'t add point');
+    }
   }
 
-  addPoint(updateType, point) {
-    this.#points = [point, ...this.#points];
+  async deletePoint(updateType, pointToDelete) {
+    const index = this.#points.findIndex(
+      (point) => point.id === pointToDelete.id
+    );
 
-    this._notify(updateType);
+    if (index === -1) {
+      throw new Error('Can\'t delete unexisting point');
+    }
+
+    try {
+      await this.#pointsApiService.deletePoint(pointToDelete);
+
+      this.#points = [
+        ...this.#points.slice(0, index),
+        ...this.#points.slice(index + 1),
+      ];
+
+      this._notify(updateType);
+    } catch (err) {
+      throw new Error('Can\'t delete point');
+    }
   }
 
   #adaptToClient(point) {
