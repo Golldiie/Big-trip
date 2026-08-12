@@ -1,25 +1,27 @@
 import Observable from '../framework/observable.js';
-import { getRandomPoint } from '../mocks/points.js';
-import { mockOffers } from '../mocks/offers.js';
-import { mockDestinations } from '../mocks/destinations.js';
 
-const POINT_COUNT = 4;
 
 export default class TripModel extends Observable {
-  #points = Array.from({length: POINT_COUNT}, getRandomPoint);
-  offers = mockOffers;
-  destinations = mockDestinations;
+  #points = [];
 
   #pointsApiService = null;
 
   constructor({pointsApiService}){
     super();
     this.#pointsApiService = pointsApiService;
-    this.#pointsApiService.points.then((points) => console.log(points.map(this.#adaptToClient)));
   }
 
   get points() {
     return this.#points;
+  }
+
+  async init(){
+    try {
+      const points = await this.#pointsApiService.points;
+      this.#points = points.map(this.#adaptToClient);
+    } catch(err){
+      this.#points = [];
+    }
   }
 
   setPoints(points){

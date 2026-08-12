@@ -22,3 +22,4 @@ const presenter = new MainPresenter({
 });
 
 presenter.init();
+tripModel.init();
