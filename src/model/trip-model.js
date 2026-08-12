@@ -1,8 +1,11 @@
 import Observable from '../framework/observable.js';
+import { UpdateType } from '../const.js';
 
 
 export default class TripModel extends Observable {
   #points = [];
+  #destinations = [];
+  #offers = [];
 
   #pointsApiService = null;
 
@@ -15,21 +18,32 @@ export default class TripModel extends Observable {
     return this.#points;
   }
 
-  async init(){
+  async init() {
     try {
-      const points = await this.#pointsApiService.points;
+      const [points, destinations, offers] = await Promise.all([
+        this.#pointsApiService.points,
+        this.#pointsApiService.destinations,
+        this.#pointsApiService.offers,
+      ]);
+
       this.#points = points.map(this.#adaptToClient);
-    } catch(err){
+      this.#destinations = destinations;
+      this.#offers = offers;
+    } catch (err) {
       this.#points = [];
+      this.#destinations = [];
+      this.#offers = [];
     }
+
+    this._notify(UpdateType.INIT);
   }
 
   setPoints(points){
     this.#points = points;
   }
 
-  getOffers = () => this.offers;
-  getDestinations = () => this.destinations;
+  getOffers = () => this.#offers;
+  getDestinations = () => this.#destinations;
 
   getDestinationById(id){
     const allDestinations = this.getDestinations();

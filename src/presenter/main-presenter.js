@@ -1,4 +1,5 @@
 import { render, replace, remove } from '../framework/render.js';
+import Loading from '../view/loading.js';
 import NewPointButton from '../view/new-point-button.js';
 import NewPointPresenter from './new-point-presenter.js';
 import Sort from '../view/sort.js';
@@ -15,6 +16,8 @@ export default class MainPresenter {
   #currentSortType = DEFAULT_SORT;
   #newPointButton = null;
   #newPointPresenter = null;
+  #loadingComponent = new Loading();
+  #isLoading = true;
 
   constructor({
     filtersContainer,
@@ -55,13 +58,7 @@ export default class MainPresenter {
     this.#renderFilter();
     this.#renderSort();
 
-    const pointsListElement = this.#createPointsList();
-
-    if (!pointsListElement) {
-      return;
-    }
-
-    this.#renderRoutePoints(pointsListElement);
+    render(this.#loadingComponent, this.eventsContainer);
   }
 
   #renderNewPointButton() {
@@ -247,19 +244,57 @@ export default class MainPresenter {
     });
   };
 
-  #handleModelEvent = () => {
-    this.#currentSortType = DEFAULT_SORT;
+  #handleModelEvent = (updateType, data) => {
+    switch (updateType) {
+      case UpdateType.PATCH:
+        this.#pointPresenters.get(data.id).update(data);
+        break;
 
-    this.#renderSort();
+      case UpdateType.MINOR: {
+        this.#clearPoints();
 
-    this.#clearPoints();
+        const pointsListElement = this.#createPointsList();
 
-    const pointsListElement = this.#createPointsList();
+        if (!pointsListElement) {
+          return;
+        }
 
-    if (!pointsListElement) {
-      return;
+        this.#renderRoutePoints(pointsListElement);
+        break;
+      }
+
+      case UpdateType.MAJOR: {
+        this.#currentSortType = DEFAULT_SORT;
+
+        this.#renderSort();
+        this.#clearPoints();
+
+        const pointsListElement = this.#createPointsList();
+
+        if (!pointsListElement) {
+          return;
+        }
+
+        this.#renderRoutePoints(pointsListElement);
+        break;
+      }
+
+      case UpdateType.INIT: {
+        this.#isLoading = false;
+
+        remove(this.#loadingComponent);
+
+        this.#clearPoints();
+
+        const pointsListElement = this.#createPointsList();
+
+        if (!pointsListElement) {
+          return;
+        }
+
+        this.#renderRoutePoints(pointsListElement);
+        break;
+      }
     }
-
-    this.#renderRoutePoints(pointsListElement);
   };
 }
