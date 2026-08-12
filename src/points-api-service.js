@@ -5,7 +5,12 @@ const Method = {
   PUT: 'PUT'
 };
 
-export default class PointApiService {
+export default class PointsApiService extends ApiService{
+
+  constructor(endPoint, authorization) {
+    super(endPoint, authorization);
+  }
+
   get points() {
     return this._load({url: 'points'}).then(ApiService.parseResponse);
   }
