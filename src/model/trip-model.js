@@ -60,17 +60,29 @@ export default class TripModel extends Observable {
     return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
   }
 
-  updatePoint(updateType, updatedPoint) {
+  async updatePoint(updateType, updatedPoint) {
     const index = this.#points.findIndex(
       (point) => point.id === updatedPoint.id
     );
 
     if (index === -1) {
-      throw new Error('Can\'t update unexisting task');
+      throw new Error('Can\'t update unexisting point');
     }
 
-    this.#points[index] = updatedPoint;
-    this._notify(updateType, updatedPoint);
+    try {
+      const response = await this.#pointsApiService.updatePoint(updatedPoint);
+      const updatedFromServer = this.#adaptToClient(response);
+
+      this.#points = [
+        ...this.#points.slice(0, index),
+        updatedFromServer,
+        ...this.#points.slice(index + 1),
+      ];
+
+      this._notify(updateType, updatedFromServer);
+    } catch (err) {
+      throw new Error('Can\'t update point');
+    }
   }
 
   deletePoint(updateType, pointToDelete) {
@@ -95,7 +107,6 @@ export default class TripModel extends Observable {
       isFavorite: point['is_favorite'],
     };
 
-    // Ненужные ключи мы удаляем
     delete adaptedPoint['base_price'];
     delete adaptedPoint['date_from'];
     delete adaptedPoint['date_to'];

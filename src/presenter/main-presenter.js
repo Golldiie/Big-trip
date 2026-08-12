@@ -12,6 +12,7 @@ import { sortByDate, sortByPrice, sortByTime } from '../utils/utils.js';
 
 export default class MainPresenter {
   #pointPresenters = new Map();
+  #filterPresenter = null;
   #sortComponent = null;
   #currentSortType = DEFAULT_SORT;
   #newPointButton = null;
@@ -55,9 +56,12 @@ export default class MainPresenter {
 
   init() {
     this.#renderNewPointButton();
-    this.#renderFilter();
-    this.#renderSort();
+    this.#renderLoading();
 
+    this.tripModel.init();
+  }
+
+  #renderLoading() {
     render(this.#loadingComponent, this.eventsContainer);
   }
 
@@ -70,13 +74,17 @@ export default class MainPresenter {
   }
 
   #renderFilter() {
-    const filterPresenter = new FilterPresenter({
+    if (this.#filterPresenter !== null) {
+      return;
+    }
+
+    this.#filterPresenter = new FilterPresenter({
       filterContainer: this.filtersContainer,
       filterModel: this.filterModel,
       tripModel: this.tripModel,
     });
 
-    filterPresenter.init();
+    this.#filterPresenter.init();
   }
 
   #renderSort() {
@@ -247,7 +255,7 @@ export default class MainPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#pointPresenters.get(data.id).update(data);
+        this.#pointPresenters.get(data.id)?.update(data);
         break;
 
       case UpdateType.MINOR: {
@@ -284,7 +292,8 @@ export default class MainPresenter {
 
         remove(this.#loadingComponent);
 
-        this.#clearPoints();
+        this.#renderFilter();
+        this.#renderSort();
 
         const pointsListElement = this.#createPointsList();
 
