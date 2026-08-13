@@ -1,4 +1,5 @@
 import { render, replace, remove } from '../framework/render.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import Loading from '../view/loading.js';
 import NewPointButton from '../view/new-point-button.js';
 import NewPointPresenter from './new-point-presenter.js';
@@ -10,6 +11,11 @@ import PointPresenter from './point-presenter.js';
 import FilterPresenter from './filter-presenter.js';
 import { sortByDate, sortByPrice, sortByTime } from '../utils/utils.js';
 
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
 export default class MainPresenter {
   #pointPresenters = new Map();
   #filterPresenter = null;
@@ -19,6 +25,10 @@ export default class MainPresenter {
   #newPointPresenter = null;
   #loadingComponent = new Loading();
   #isLoading = true;
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   constructor({
     filtersContainer,
@@ -229,6 +239,7 @@ export default class MainPresenter {
   }
 
   #handlePointChange = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
@@ -260,6 +271,7 @@ export default class MainPresenter {
         }
         break;
     }
+    this.#uiBlocker.unblock();
   };
 
   #handleModeChange = (currentPresenter) => {
