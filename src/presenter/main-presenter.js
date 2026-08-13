@@ -228,19 +228,37 @@ export default class MainPresenter {
     });
   }
 
-  #handlePointChange = (actionType, updateType, update) => {
+  #handlePointChange = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
-        return this.tripModel.updatePoint(updateType, update);
+
+        try {
+          await this.tripModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
+        break;
 
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
-        return this.tripModel.addPoint(updateType, update);
+
+        try {
+          await this.tripModel.addPoint(updateType, update);
+        } catch (err) {
+          this.#newPointPresenter.setAborting();
+        }
+        break;
 
       case UserAction.DELETE_POINT:
         this.#pointPresenters.get(update.id).setDeleting();
-        return this.tripModel.deletePoint(updateType, update);
+
+        try {
+          await this.tripModel.deletePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
+        break;
     }
   };
 

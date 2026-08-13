@@ -63,18 +63,24 @@ export default class NewPointPresenter {
     });
   }
 
-  #handleFormSubmit = async (point) => {
-    try {
-      await this.#handleDataChange(
-        UserAction.ADD_POINT,
-        UpdateType.MAJOR,
-        point,
-      );
-    } catch (err) {
+  setAborting() {
+    const resetFormState = () => {
       this.#formCreationComponent.updateElement({
+        isDisabled: false,
         isSaving: false,
+        isDeleting: false,
       });
-    }
+    };
+
+    this.#formCreationComponent.shake(resetFormState);
+  }
+
+  #handleFormSubmit = (point) => {
+    this.#handleDataChange(
+      UserAction.ADD_POINT,
+      UpdateType.MAJOR,
+      point,
+    );
   };
 
   #handleCancelClick = () => {
