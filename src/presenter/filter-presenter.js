@@ -25,14 +25,14 @@ export default class FilterPresenter {
     return Object.values(FilterType).map((type) =>({type, count: filter[type](points).length}));
   }
 
-  init(){
+  init() {
     const filters = this.filters;
     const prevFilterComponent = this.#filterComponent;
 
     this.#filterComponent = new Filter({
       filters,
       currentFilterType: this.#filterModel.filter,
-      onFilterTypeChange: this.#handleFilterTypeChange
+      onFilterTypeChange: this.#handleFilterTypeChange,
     });
 
     if (prevFilterComponent === null) {
@@ -42,6 +42,23 @@ export default class FilterPresenter {
 
     replace(this.#filterComponent, prevFilterComponent);
     remove(prevFilterComponent);
+  }
+
+  destroy() {
+    remove(this.#filterComponent);
+    this.#filterComponent = null;
+  }
+
+  setDisabled(isDisabled) {
+    if (!this.#filterComponent) {
+      return;
+    }
+
+    this.#filterComponent.element
+      .querySelectorAll('.trip-filters__filter-input')
+      .forEach((filterButton) => {
+        filterButton.disabled = isDisabled;
+      });
   }
 
   #handleModelEvent = () => {

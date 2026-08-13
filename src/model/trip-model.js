@@ -25,17 +25,18 @@ export default class TripModel extends Observable {
         this.#pointsApiService.destinations,
         this.#pointsApiService.offers,
       ]);
-
       this.#points = points.map(this.#adaptToClient);
       this.#destinations = destinations;
       this.#offers = offers;
+
+      this._notify(UpdateType.INIT);
     } catch (err) {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
-    }
 
-    this._notify(UpdateType.INIT);
+      this._notify(UpdateType.ERROR);
+    }
   }
 
   setPoints(points){

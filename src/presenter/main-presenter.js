@@ -69,6 +69,7 @@ export default class MainPresenter {
 
   init() {
     this.#renderNewPointButton();
+    this.#renderFilter();
     this.#renderLoading();
 
     this.tripModel.init();
@@ -76,6 +77,23 @@ export default class MainPresenter {
 
   #renderLoading() {
     render(this.#loadingComponent, this.eventsContainer);
+  }
+
+  #renderError() {
+    remove(this.#loadingComponent);
+
+    render(
+      new ListMessage({ message: MessageBoard.ERROR }),
+      this.eventsContainer
+    );
+
+    if (this.#newPointButton) {
+      this.#newPointButton.element.disabled = true;
+    }
+
+    if (this.#filterPresenter) {
+      this.#filterPresenter.setDisabled(true);
+    }
   }
 
   #getTripRoute() {
@@ -393,7 +411,6 @@ export default class MainPresenter {
 
         remove(this.#loadingComponent);
 
-        this.#renderFilter();
         this.#renderSort();
         this.#renderTripInfo();
 
@@ -404,6 +421,12 @@ export default class MainPresenter {
         }
 
         this.#renderRoutePoints(pointsListElement);
+        break;
+      }
+
+      case UpdateType.ERROR: {
+        this.#isLoading = false;
+        this.#renderError();
         break;
       }
     }
