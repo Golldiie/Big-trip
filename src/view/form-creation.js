@@ -6,7 +6,8 @@ import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
 
-function createFormCreationTemplate(type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice){
+function createFormCreationTemplate(data){
+  const {type, destination, offers, selectedOffers, destinations, dateFrom, dateTo, basePrice, isSaving, isDisabled} = data;
   return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
   <header class="event__header">
@@ -15,7 +16,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
         <span class="visually-hidden">Choose event type</span>
         <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
       </label>
-    <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+    <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isSaving ? 'disabled' : ''}>
 
     <div class="event__type-list">
       <fieldset class="event__type-group">
@@ -27,7 +28,7 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 
   <div class="event__field-group  event__field-group--destination">
     <label class="event__label  event__type-output" for="event-destination-1">${capitalize(type)}</label>
-    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination ? he.encode(destination.name) : ''}" list="destination-list-1">
+    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination ? he.encode(destination.name) : ''}" list="destination-list-1" ${isSaving ? 'disabled' : ''}>
     <datalist id="destination-list-1">
       ${createDestinationsListTemplate(destinations)}
     </datalist>
@@ -35,24 +36,24 @@ function createFormCreationTemplate(type, destination, offers, selectedOffers, d
 
   <div class="event__field-group  event__field-group--time">
     <label class="visually-hidden" for="event-start-time-1">From</label>
-    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? humanizeFormDate(dateFrom) : ''}">&mdash;
+    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? humanizeFormDate(dateFrom) : ''}" ${isSaving ? 'disabled' : ''}>&mdash;
     <label class="visually-hidden" for="event-end-time-1">To</label>
-    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateFrom ? humanizeFormDate(dateTo) : ''}">
+    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateFrom ? humanizeFormDate(dateTo) : ''}" ${isSaving ? 'disabled' : ''}>
   </div>
 
   <div class="event__field-group  event__field-group--price">
     <label class="event__label" for="event-price-1">
       <span class="visually-hidden">Price</span>&euro;
     </label>
-    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}" ${isSaving ? 'disabled' : ''}>
   </div>
 
-  <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+  <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
   <button class="event__reset-btn" type="reset">Cancel</button>
   </header>
 
   <section class="event__details">
-    ${createOffersTemplate(offers, selectedOffers)}
+    ${createOffersTemplate(offers, selectedOffers, isDisabled)}
 
     ${createDestinationTemplate(destination)}
   </section>
@@ -87,16 +88,7 @@ export default class FormCreation extends AbstractStatefulView {
   }
 
   get template() {
-    return createFormCreationTemplate(
-      this._state.type,
-      this._state.destination,
-      this._state.offers,
-      this._state.selectedOffers,
-      this._state.destinations,
-      this._state.dateFrom,
-      this._state.dateTo,
-      this._state.basePrice
-    );
+    return createFormCreationTemplate(this._state);
   }
 
   _restoreHandlers = () => {
@@ -227,7 +219,6 @@ export default class FormCreation extends AbstractStatefulView {
     }
 
     const point = {
-      id: crypto.randomUUID(),
       type: this._state.type,
       destination: this._state.destination.id,
       dateFrom: this._state.dateFrom,
@@ -236,6 +227,10 @@ export default class FormCreation extends AbstractStatefulView {
       offers: this._state.selectedOffers,
       isFavorite: false,
     };
+
+    this.updateElement({
+      isSaving: true,
+    });
 
     this._callback.formSubmit(point);
   };

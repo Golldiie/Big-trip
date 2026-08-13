@@ -136,14 +136,42 @@ export default class PointPresenter {
     this.#replacePointToForm();
   };
 
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#formEditingComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#formEditingComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#formEditingComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#formEditingComponent.shake(resetFormState);
+  }
+
   #handleFormSubmit = (point) => {
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.MINOR,
       point,
     );
-
-    this.#replaceFormToPoint();
   };
 
   #handleDeleteClick = (point) => {

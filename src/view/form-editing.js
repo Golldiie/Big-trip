@@ -5,7 +5,9 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
-function createFormEditingTemplate(point, destination, offers, selectedOffers, destinations){
+function createFormEditingTemplate(data){
+  const {point, destination, offers, selectedOffers, destinations, isDisabled, isSaving, isDeleting} = data;
+
   return `<form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
@@ -13,7 +15,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
           <span class="visually-hidden">Choose event type</span>
           <img class="event__type-icon" width="17" height="17" src="img/icons/${point.type}.png" alt="Event type icon">
         </label>
-        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${point.id}" type="checkbox">
+        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${point.id}" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
         <div class="event__type-list">
           <fieldset class="event__type-group">
@@ -27,7 +29,7 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
         <label class="event__label  event__type-output" for="event-destination-1">
                       ${capitalize(point.type)}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${he.encode(destination.name)}" list="destination-list-${point.id}">
+                    <input class="event__input  event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${he.encode(destination.name)}" list="destination-list-${point.id}" ${isDisabled ? 'disabled' : ''}>
                     <datalist id="destination-list-${point.id}">
                       ${createDestinationsListTemplate(destinations)}
                     </datalist>
@@ -35,10 +37,10 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
 
                   <div class="event__field-group  event__field-group--time">
                     <label class="visually-hidden" for="event-start-time-${point.id}">From</label>
-                    <input class="event__input  event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${humanizeFormDate(point.dateFrom)}">
+                    <input class="event__input  event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${humanizeFormDate(point.dateFrom)}" ${isDisabled ? 'disabled' : ''}>
                     &mdash;
                     <label class="visually-hidden" for="event-end-time-${point.id}">To</label>
-                    <input class="event__input  event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${humanizeFormDate(point.dateTo)}">
+                    <input class="event__input  event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${humanizeFormDate(point.dateTo)}" ${isDisabled ? 'disabled' : ''}>
                   </div>
 
                   <div class="event__field-group  event__field-group--price">
@@ -46,17 +48,17 @@ function createFormEditingTemplate(point, destination, offers, selectedOffers, d
                       <span class="visually-hidden">Price</span>
                        &euro;
                     </label>
-                    <input class="event__input  event__input--price" id="event-price-${point.id}" type="text" name="event-price" value="${point.basePrice}">
+                    <input class="event__input  event__input--price" id="event-price-${point.id}" type="text" name="event-price" value="${point.basePrice}" ${isDisabled ? 'disabled' : ''}>
                   </div>
 
-                  <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-                  <button class="event__reset-btn" type="reset">Delete</button>
+                  <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+                  <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
                   <button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>
                   </button>
                 </header>
                 <section class="event__details">
-                  ${createOffersTemplate(offers, selectedOffers)}
+                  ${createOffersTemplate(offers, selectedOffers, isDisabled)}
 
                   ${createDestinationTemplate(destination)}
                 </section>
@@ -116,7 +118,7 @@ export default class FormEditing extends AbstractStatefulView{
   };
 
   get template(){
-    return createFormEditingTemplate(this._state.point, this._state.destination, this._state.offers, this._state.selectedOffers, this._state.destinations);
+    return createFormEditingTemplate(this._state);
   }
 
   removeElement() {
@@ -246,19 +248,37 @@ export default class FormEditing extends AbstractStatefulView{
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this._callback.formSubmit(FormEditing.parseStateToPoint(this._state));
+
+    this.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+
+    this._callback.formSubmit(
+      FormEditing.parseStateToPoint(this._state)
+    );
   };
 
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
+
+    this.updateElement({
+      isDisabled: true,
+      isDeleting: true,
+    });
 
     this._callback.deleteClick(
       FormEditing.parseStateToPoint(this._state)
     );
   };
 
-  static parsePointToState(data){
-    return {...data };
+  static parsePointToState(data) {
+    return {
+      ...data,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    };
   }
 
   static parseStateToPoint(state) {

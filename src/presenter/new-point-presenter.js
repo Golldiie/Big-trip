@@ -8,7 +8,7 @@ export default class NewPointPresenter {
   #handleDataChange = null;
   #handleDestroy = null;
 
-  #pointEditComponent = null;
+  #formCreationComponent = null;
 
   constructor({
     pointListContainer,
@@ -23,11 +23,11 @@ export default class NewPointPresenter {
   }
 
   init() {
-    if (this.#pointEditComponent !== null) {
+    if (this.#formCreationComponent !== null) {
       return;
     }
 
-    this.#pointEditComponent = new FormCreation({
+    this.#formCreationComponent = new FormCreation({
       offersByType: this.#tripModel.getOffers(),
       destinations: this.#tripModel.getDestinations(),
       onFormSubmit: this.#handleFormSubmit,
@@ -35,7 +35,7 @@ export default class NewPointPresenter {
     });
 
     render(
-      this.#pointEditComponent,
+      this.#formCreationComponent,
       this.#pointListContainer,
       RenderPosition.AFTERBEGIN
     );
@@ -44,26 +44,43 @@ export default class NewPointPresenter {
   }
 
   destroy() {
-    if (this.#pointEditComponent === null) {
+    if (this.#formCreationComponent === null) {
       return;
     }
 
     this.#handleDestroy();
 
-    remove(this.#pointEditComponent);
-    this.#pointEditComponent = null;
+    remove(this.#formCreationComponent);
+    this.#formCreationComponent = null;
 
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+  }
+
+  setSaving() {
+    this.#formCreationComponent.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#formCreationComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#formCreationComponent.shake(resetFormState);
   }
 
   #handleFormSubmit = (point) => {
     this.#handleDataChange(
       UserAction.ADD_POINT,
-      UpdateType.MINOR,
+      UpdateType.MAJOR,
       point,
     );
-
-    this.destroy();
   };
 
   #handleCancelClick = () => {
