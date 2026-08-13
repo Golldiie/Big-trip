@@ -1,6 +1,8 @@
-import { render, replace, remove } from '../framework/render.js';
+import { render, replace, remove, RenderPosition } from '../framework/render.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import Loading from '../view/loading.js';
+import dayjs from 'dayjs';
+import TripInfo from '../view/trip-info.js';
 import NewPointButton from '../view/new-point-button.js';
 import NewPointPresenter from './new-point-presenter.js';
 import Sort from '../view/sort.js';
@@ -18,6 +20,7 @@ const TimeLimit = {
 
 export default class MainPresenter {
   #pointPresenters = new Map();
+  #tripInfoComponent = null;
   #filterPresenter = null;
   #sortComponent = null;
   #currentSortType = DEFAULT_SORT;
@@ -73,6 +76,72 @@ export default class MainPresenter {
 
   #renderLoading() {
     render(this.#loadingComponent, this.eventsContainer);
+  }
+
+  #getTripRoute() {
+    const points = [...this.tripModel.points].sort(sortByDate);
+
+    const destinations = points.map(
+      (point) => this.tripModel.getDestinationById(point.destination).name
+    );
+
+    if (destinations.length <= 3) {
+      return destinations.join(' — ');
+    }
+
+    return `${destinations[0]} — … — ${destinations.at(-1)}`;
+  }
+
+  #getTripDates() {
+    const points = [...this.tripModel.points].sort(sortByDate);
+
+    if (points.length === 0) {
+      return '';
+    }
+
+    const dateFrom = dayjs(points[0].dateFrom);
+    const dateTo = dayjs(points.at(-1).dateTo);
+
+    if (dateFrom.month() === dateTo.month()) {
+      return `${dateFrom.format('DD')} — ${dateTo.format('DD MMM')}`;
+    }
+
+    return `${dateFrom.format('DD MMM')} — ${dateTo.format('DD MMM')}`;
+  }
+
+  #getTripCost() {
+    return this.tripModel.points.reduce((total, point) => {
+      const offers = this.tripModel.getOfferById(
+        point.type,
+        point.offers
+      );
+
+      const offersCost = offers.reduce(
+        (sum, offer) => sum + offer.price,
+        0
+      );
+
+      return total + point.basePrice + offersCost;
+    }, 0);
+  }
+
+  #renderTripInfo() {
+    const tripInfo = new TripInfo({
+      route: this.#getTripRoute(),
+      dates: this.#getTripDates(),
+      cost: this.#getTripCost(),
+    });
+
+    if (this.#tripInfoComponent === null) {
+      this.#tripInfoComponent = tripInfo;
+      render(tripInfo, this.newPointButtonContainer, RenderPosition.AFTERBEGIN);
+      return;
+    }
+
+    replace(tripInfo, this.#tripInfoComponent);
+    remove(this.#tripInfoComponent);
+
+    this.#tripInfoComponent = tripInfo;
   }
 
   #renderNewPointButton() {
@@ -289,6 +358,7 @@ export default class MainPresenter {
         break;
 
       case UpdateType.MINOR: {
+        this.#renderTripInfo();
         this.#clearPoints();
 
         const pointsListElement = this.#createPointsList();
@@ -304,6 +374,7 @@ export default class MainPresenter {
       case UpdateType.MAJOR: {
         this.#currentSortType = DEFAULT_SORT;
 
+        this.#renderTripInfo();
         this.#renderSort();
         this.#clearPoints();
 
@@ -324,6 +395,7 @@ export default class MainPresenter {
 
         this.#renderFilter();
         this.#renderSort();
+        this.#renderTripInfo();
 
         const pointsListElement = this.#createPointsList();
 
